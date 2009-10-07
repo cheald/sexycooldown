@@ -160,6 +160,7 @@ do
 	end
 	
 	function barPrototype:CreateCooldown(typ, id, startTime, duration, icon)
+		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
 		local hyperlink = ("%s:%s"):format(typ, id)
 		local f = self.cooldowns[hyperlink]
 		if not f then
@@ -221,6 +222,11 @@ do
 				
 				tinsert(self.allFrames, f)
 			end
+			
+			f.finish:Stop()
+			f.throb:Stop()
+			f.pulse:Stop()
+			
 			f:SetFrameLevel(framelevelSerial)
 			f.overlay:SetFrameLevel(framelevelSerial + 1)
 			framelevelSerial = framelevelSerial + 2

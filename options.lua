@@ -26,6 +26,7 @@ mod.barDefaults = {
 			fontColor = { r = 1, g = 1, b = 1, a = 1 },
 			width = 500,
 			height = 24,
+			minDuration = 3
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
@@ -306,6 +307,15 @@ function mod:GetOptionsTable(frame)
 					type = "toggle",
 					name = L["Flexible"],
 					desc = L["Collapse the bar to the length of your longest active cooldown."]				
+				},
+				minDuration = {
+					type = "range",
+					name = L["Minimum duration"],
+					desc = L["Cooldowns shorter than this will not be shown."],
+					min = 3,
+					max = 60,
+					step = 1,
+					bigStep = 1
 				}
 			}
 		}

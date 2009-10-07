@@ -47,6 +47,8 @@ local function deepcopy(from)
 	return to
 end
 
+local lastPlayerSpell, lastPetSpell = {}, {}
+
 function mod:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("SexyCooldownDB", defaults)
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SexyCooldown", options.args.bars)
@@ -66,15 +68,11 @@ function mod:OnEnable()
 	self:RegisterEvent("BAG_UPDATE_COOLDOWN")
 	self:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 	self:RegisterEvent("SPELLS_CHANGED", "CacheSpells")	
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:SPELL_UPDATE_COOLDOWN()
 	self:BAG_UPDATE_COOLDOWN()
 	
 	self:RegisterEvent("UNIT_SPELLCAST_FAILED")
-	-- self:RegisterEvent("UNIT_ENTERED_VEHICLE")
-	-- if UnitHasVehicleUI("player") then
-		-- self:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-		-- self:RegisterEvent("UNIT_EXITED_VEHICLE")
-	-- end
 end
 
 function mod:OnDisable()
@@ -130,6 +128,10 @@ function mod:UNIT_SPELLCAST_FAILED(event, unit, spell, rank)
 		for _, frame in ipairs(frames) do
 			frame:CastFailure("spell", spells.PLAYER[spell])
 		end
+	elseif unit == "pet" and spells.PET[spell] then
+		for _, frame in ipairs(frames) do
+			frame:CastFailure("spell", spells.PET[spell])
+		end
 	end
 end
 
@@ -161,15 +163,60 @@ do
 end
 
 do
-	local lastSpellCooldownCheck = 0
 	function mod:SPELL_UPDATE_COOLDOWN()
-		local t = GetTime()
-		lastSpellCooldownCheck = t
-		for name, id in pairs(spells.PLAYER) do
-			local start, duration, active = GetSpellCooldown(name)
+		local start, duration, active, id
+		local added = false
+		
+		for _, name in ipairs(lastPlayerSpell) do
+			start, duration, active = GetSpellCooldown(name)
 			if active == 1 and start > 0 and duration > 3 then
-				self:AddCooldown("spell", id, start, duration)
+				self:AddCooldown("spell", spells.PLAYER[name], start, duration)
+				added = true
+				break
 			end
+		end
+		
+		if not added then
+			for name, id in pairs(spells.PLAYER) do
+				start, duration, active = GetSpellCooldown(name)
+				if active == 1 and start > 0 and duration > 3 then
+					self:AddCooldown("spell", id, start, duration)
+				end
+			end
+		end
+		
+		if UnitExists("pet") then
+			added = false
+			for _, name in ipairs(lastPetSpell) do
+				start, duration, active = GetSpellCooldown(name)
+				if active == 1 and start > 0 and duration > 3 then
+					self:AddCooldown("spell", spells.PET[name], start, duration)
+					added = true
+					break
+				end
+			end		
+			if not added then
+				if active == 1 and start > 0 and duration > 3 then
+					self:AddCooldown("spell", spells.PET[name], start, duration)
+				else
+					for name, id in pairs(spells.PET) do
+						start, duration, active = GetSpellCooldown(name)
+						if active == 1 and start > 0 and duration > 3 then
+							self:AddCooldown("spell", id, start, duration)
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
+		if unit == "player" then
+			tinsert(lastPlayerSpell, 1, spell)
+			if #lastPlayerSpell > 5 then tremove(lastPlayerSpell) end
+		elseif unit == "pet" then
+			tinsert(lastPetSpell, 1, spell)
+			if #lastPetSpell > 5 then tremove(lastPetSpell) end
 		end
 	end
 end

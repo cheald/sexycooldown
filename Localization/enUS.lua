@@ -44,6 +44,8 @@ L["Background color"] = true
 L["Border insets"] = true
 L["Flexible"] = true
 L["Collapse the bar to the length of your longest active cooldown."] = true
+L["Minimum duration"] = true
+L["Cooldowns shorter than this will not be shown."] = true
 
 -- ./prototype.lua
 -- no localization
