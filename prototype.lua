@@ -214,8 +214,8 @@ do
 				f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
 				f.pulseAlpha:SetChange(-0.9)
 				f.pulseAlpha:SetDuration(1)
-				f.pulseAlpha:SetEndDelay(0.5)
-				f.pulseAlpha:SetStartDelay(0.5)
+				f.pulseAlpha:SetEndDelay(0.2)
+				f.pulseAlpha:SetStartDelay(0.2)
 				
 				f.throb = f:CreateAnimationGroup()
 				f.throbSize = f.throb:CreateAnimation("Scale")
