@@ -1,9 +1,16 @@
 local mod = SexyCooldown
+local math_pow = _G.math.pow
+local string_format = _G.string.format
+local math_floor = _G.math.floor
+local math_fmod = _G.math.fmod
+local math_min = _G.math.min
+
 local function getPos(val, valMax, base)
-	return math.pow(val, base) / math.pow(valMax, base)
+	return math_pow(val, base) / math_pow(valMax, base)
 end
 local LSM = LibStub("LibSharedMedia-3.0")
 
+local GetTime = _G.GetTime
 local dummyFrame = CreateFrame("Frame")
 local cooldownPrototype = setmetatable({}, {__index = dummyFrame})
 local cooldownMeta = {__index = cooldownPrototype}
@@ -13,12 +20,31 @@ mod.barMeta = {__index = barPrototype}
 barPrototype.framePool = {}
 barPrototype.stringPool = {}
 
+local totals = {}
+local loops = {}
+local function bench(key, action)
+	local t = GetTime()
+	totals[key] = totals[key] or 0
+	if action == "start" then
+		loops[key] = t
+	else
+		totals[key] = totals[key] + (t - loops[key])
+	end
+end
+
+local function report()
+	for k, v in pairs(totals) do
+		print(k, ":", v)
+	end
+end
+mod.bench, mod.report = bench, report
+
 ------------------------------------------------------
 -- Bar prototype
 ------------------------------------------------------
 
 function barPrototype:Init()
-	self:SetFrameStrata("MEDIUM")
+	self:SetFrameStrata("HIGH")
 	self.settings = self.db.profile
 	self.usedFrames = {}
 	self.cooldowns = {}
@@ -45,6 +71,8 @@ function barPrototype:Init()
 	self:SetScript("OnSizeChanged", function()
 		self.settings.bar.width = self:GetWidth()
 		self.settings.bar.height = self:GetHeight()
+		self.w = self.settings.bar.width
+		self.h = self.settings.bar.height
 		self:UpdateLook()
 	end)
 	self:EnableMouse(true)
@@ -89,12 +117,12 @@ end
 do
 	local framelevelSerial = 1
 	local delta = 0
-	local throttle = 1 / 30
+	local throttle = 1 / 33
 	function barPrototype:OnUpdate(t)
 		delta = delta + t		
 		if delta < throttle then return end
-		throttle = throttle - delta		
-		for k, frame in pairs(self.cooldowns) do		
+		delta = delta - throttle
+		for _, frame in ipairs(self.usedFrames) do		
 			frame:UpdateTime()
 		end
 	end
@@ -125,6 +153,10 @@ do
 		else
 			icon.fs:Hide()
 		end
+		
+		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
+		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
+		icon.animationOpacity:SetDuration(self.settings.icon.splashSpeed)
 	end
 	
 	function barPrototype:CreateCooldown(typ, id, startTime, duration, icon)
@@ -134,12 +166,12 @@ do
 			f = tremove(self.framePool)
 			if not f then
 				f = setmetatable(CreateFrame("Frame"), cooldownMeta)
-				f:SetFrameStrata("MEDIUM")
+				f:SetFrameStrata("HIGH")
 				f.tex = f:CreateTexture()
 
 				f.overlay = CreateFrame("Frame", nil, f)
 				f.overlay:SetAllPoints()
-				f.overlay:SetFrameStrata("MEDIUM")
+				f.overlay:SetFrameStrata("HIGH")
 				f.overlay.tex = f.overlay:CreateTexture()
 				f.overlay.tex:SetAllPoints()
 				
@@ -148,26 +180,86 @@ do
 				f:SetScript("OnEnter", f.ShowTooltip)
 				f:SetScript("OnLeave", f.HideTooltip)
 				f:EnableMouse(true)
+				
+				f.finish = f:CreateAnimationGroup()
+				f.finish:SetScript("OnPlay", function(self)
+					f.overlay:Hide()
+				end)
+				f.finish:SetScript("OnFinished", function(self)
+					f:Hide()
+					f.overlay:Show()
+				end)
+				
+				f.finishScale = f.finish:CreateAnimation("Scale")
+				
+				
+				f.animationOpacity = f.finish:CreateAnimation("Alpha")
+				f.animationOpacity:SetChange(-1)				
+				
+				f.pulse = f:CreateAnimationGroup()
+				f.pulse:SetLooping("BOUNCE")
+				f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
+				f.pulseAlpha:SetChange(-0.9)
+				f.pulseAlpha:SetDuration(1)
+				f.pulseAlpha:SetEndDelay(0.5)
+				f.pulseAlpha:SetStartDelay(0.5)
+				
+				f.throb = f:CreateAnimationGroup()
+				f.throbSize = f.throb:CreateAnimation("Scale")
+				f.throbSize:SetSmoothing("NONE")
+				f.throbSize:SetScale(1.8, 1.8)
+				f.throbSize:SetDuration(0.1)
+				f.throbAlpha = f.throb:CreateAnimation("Alpha")
+				f.throbAlpha:SetChange(1)
+				f.throbAlpha:SetDuration(0.3)
+				f.throb:SetScript("OnPlay", function()
+					f.overlay:Hide()
+				end)
+				f.throb:SetScript("OnFinished", function()
+					f.overlay:Show()
+				end)
+				
 				tinsert(self.allFrames, f)
 			end
-			f.parent = self
+			f:SetFrameLevel(framelevelSerial)
+			f.overlay:SetFrameLevel(framelevelSerial + 1)
+			framelevelSerial = framelevelSerial + 2
+			f.useTooltip = typ == "spell" or typ == "item"
+			f.hyperlink = hyperlink
+			self.cooldowns[f.hyperlink] = f
+			self.durations[f.hyperlink] = duration
+			
+			f.endTime = startTime + duration
+			for k, v in pairs(self.cooldowns) do
+				if v ~= f and math.abs(v.endTime - f.endTime) < 5 then
+					if f:GetFrameLevel() > v:GetFrameLevel() then
+						f.pulse:Play()
+					else
+						v.pulse:Play()
+					end
+				end
+			end
+			f.parent = self						
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
 		end
 		f.icon = icon
 		f.startTime = startTime
 		f.duration = duration
-		f.useTooltip = typ == "spell" or typ == "item"
-		f:SetFrameLevel(framelevelSerial)
-		f.overlay:SetFrameLevel(framelevelSerial+1)
-		framelevelSerial = framelevelSerial + 2
-		f.hyperlink = hyperlink
-		self.cooldowns[f.hyperlink] = f
-		self.durations[f.hyperlink] = duration
 		self:SetMaxDuration()
 		f:SetCooldown(typ, id, startTime + duration)
+		f:Show()
 		self:SetScript("OnUpdate", self.OnUpdate)
 		f:Show()
+	end
+	
+	function barPrototype:CastFailure(typ, id)
+		local hyperlink = typ .. ":" .. id
+		for _, v in ipairs(self.usedFrames) do
+			if v.hyperlink == hyperlink and v.endTime - GetTime() > 0.3 then
+				v.throb:Play()
+			end
+		end
 	end
 end
 
@@ -218,16 +310,16 @@ function barPrototype:SetLabels()
 		tinsert(self.stringPool, l)
 	end
 	
-	local minutes = math.floor(self:GetTimeMax() / 60)
+	local minutes = math_floor(self:GetTimeMax() / 60)
 	for i = 5, minutes, 5 do
 		self:SetLabel(i * 60)
 	end
 	
-	if minutes > 5 and math.fmod(minutes, 5) ~= 0 then
+	if minutes > 5 and math_fmod(minutes, 5) ~= 0 then
 		self:SetLabel(minutes * 60)
 	end
 	
-	for i = 1, math.min(minutes, 5) do
+	for i = 1, math_min(minutes, 5) do
 		self:SetLabel(i * 60)
 	end
 
@@ -307,7 +399,7 @@ end
 ------------------------------------------------------
 -- Button prototype
 ------------------------------------------------------
-function cooldownPrototype:SetCooldown(typ, id, endTime)
+function cooldownPrototype:SetCooldown(typ, id)
 	local icon = self.icon
 	if not icon then
 		local _
@@ -321,7 +413,6 @@ function cooldownPrototype:SetCooldown(typ, id, endTime)
 		self.tex:SetTexture(icon)
 		self.tex:SetTexCoord(0.06, 0.94, 0.05, 0.94)
 	end
-	self.endTime = endTime
 end
 
 function cooldownPrototype:ShowTooltip()
@@ -348,31 +439,44 @@ function cooldownPrototype:Expire()
 	if #parent.usedFrames == 0 then
 		parent:SetScript("OnUpdate", nil)
 	end
+	self.finish:Play()
+	self.pulse:Stop()
 	parent.cooldowns[self.hyperlink] = nil
 	parent.durations[self.hyperlink] = nil
 end
 	
 function cooldownPrototype:UpdateTime()
 	local parent = self.parent
+	local timeMax = parent:GetTimeMax()
 	local remaining = self.endTime - GetTime()
+	local iRemaining = math_floor(remaining)
 	local text
-	if remaining > 60 then
-		local minutes = math.floor(remaining / 60)
-		local seconds = math.fmod(remaining, 60)
-		text = ("%2.0f:%02.0f"):format(minutes, seconds)
-	elseif remaining <= 10 then
-		text = ("%2.1f"):format(remaining)
-	else
-		text = ("%2.0f"):format(remaining)
+	if iRemaining ~= self.lastRemaining or iRemaining < 10 then
+		if remaining > 60 then
+			local minutes = math_floor(remaining / 60)
+			local seconds = math_fmod(remaining, 60)
+			text = string_format("%2.0f:%02.0f", minutes, seconds)
+		elseif remaining <= 10 then
+			self.pulse:Stop()
+			text = string_format("%2.1f", remaining)
+		else
+			text = string_format("%2.0f", remaining)
+		end
+		if self.fs.lastText ~= text then
+			self.fs:SetText(text)
+			self.fs.lastText = text
+		end
+		self.lastRemaining = iRemaining
 	end
-	self.fs:SetText(text)
-	if remaining > parent:GetTimeMax() then
-		remaining = parent:GetTimeMax()
-	end
-	local pos = getPos(remaining, parent:GetTimeMax(), parent.settings.time_compression) * (parent:GetWidth() - parent:GetHeight())
-	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
 	
-	if remaining < 0 then
+	if remaining > timeMax then
+		remaining = timeMax
+	end
+	if remaining <= 0 then
+		remaining = 0.00001
 		self:Expire()
 	end
+	
+	local pos = getPos(remaining, timeMax, parent.settings.time_compression) * (parent.w - parent.h)
+	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
 end

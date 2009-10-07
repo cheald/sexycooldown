@@ -35,7 +35,9 @@ mod.barDefaults = {
 			fontColor = { r = 1, g = 1, b = 1, a = 1 },
 			sizeOffset = 2,
 			borderInset = 2,
-			showText = true
+			showText = true,
+			splashScale = 4,
+			splashSpeed = 0.5
 		}		
 	}
 }
@@ -177,6 +179,26 @@ function mod:GetOptionsTable(frame)
 					step = 1,
 					bigStep = 1,
 					order = 10
+				},
+				splashScale = {
+					type = "range",
+					name = L["Splash scale"],
+					desc = L["How big (or small) icons will 'splash' when their cooldown is done"],
+					min = 0,
+					max = 15,
+					step = 0.25,
+					bigStep = 0.25,
+					order = 15
+				},
+				splashSpeed = {
+					type = "range",
+					name = L["Splash speed"],
+					desc = L["How quickly to play the splash animation once a cooldown is done"],
+					min = 0.05,
+					max = 1.0,
+					step = 0.05,
+					bigStep = 0.05,
+					order = 16
 				},
 			}
 		},

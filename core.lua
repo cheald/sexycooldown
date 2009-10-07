@@ -69,7 +69,7 @@ function mod:OnEnable()
 	self:SPELL_UPDATE_COOLDOWN()
 	self:BAG_UPDATE_COOLDOWN()
 	
-	-- self:RegisterEvent("UNIT_SPELLCAST_FAILED")
+	self:RegisterEvent("UNIT_SPELLCAST_FAILED")
 	-- self:RegisterEvent("UNIT_ENTERED_VEHICLE")
 	-- if UnitHasVehicleUI("player") then
 		-- self:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
@@ -125,26 +125,33 @@ function mod:AddCooldown(cdType, item, start, duration, icon)
 	end
 end
 
-do
-	local lastBagCooldownCheck = 0
-	function mod:BAG_UPDATE_COOLDOWN()
-		local t = GetTime()
-		if t - lastBagCooldownCheck < 1 then
-			return
+function mod:UNIT_SPELLCAST_FAILED(event, unit, spell, rank)
+	if unit == "player" and spells.PLAYER[spell] then
+		for _, frame in ipairs(frames) do
+			frame:CastFailure("spell", spells.PLAYER[spell])
 		end
-		lastBagCooldownCheck = t		
+	end
+end
+
+local GetInventoryItemCooldown = _G.GetInventoryItemCooldown
+local GetInventoryItemLink = _G.GetInventoryItemLink
+local GetContainerItemCooldown = _G.GetContainerItemCooldown
+local GetContainerItemLink = _G.GetContainerItemLink
+local GetSpellCooldown = _G.GetSpellCooldown
+do
+	function mod:BAG_UPDATE_COOLDOWN()
 		for i = 1, 18 do
 			local start, duration = GetInventoryItemCooldown("player", i)
-			if start > 0 and duration > 0 then
+			if start > 0 and duration > 3 then
 				local link = GetInventoryItemLink("player",i)
-				self:AddCooldown("spell", link, start, duration)
+				self:AddCooldown("item", link, start, duration)
 			end
 		end
 		for i = 0, 4 do
 			local slots = GetContainerNumSlots(i)
 			for j = 1, slots do
 				local start, duration = GetContainerItemCooldown(i,j)
-				if start > 0 and duration > 0 then
+				if start > 0 and duration > 3 then
 					local link = GetContainerItemLink(i,j)
 					self:AddCooldown("item", link, start, duration)
 				end
@@ -159,8 +166,8 @@ do
 		local t = GetTime()
 		lastSpellCooldownCheck = t
 		for name, id in pairs(spells.PLAYER) do
-			local start, duration = GetSpellCooldown(name)
-			if start > 0 and duration > 3 then
+			local start, duration, active = GetSpellCooldown(name)
+			if active == 1 and start > 0 and duration > 3 then
 				self:AddCooldown("spell", id, start, duration)
 			end
 		end
@@ -173,7 +180,7 @@ local function cacheSpellsForBook(t, book)
 		local name = GetSpellName(i, book)
 		if not name then break end
 		
-		local _, _, eligible = GetSpellCooldown(i, book)
+		local _, _ = GetSpellCooldown(i, book)
 		local id = tonumber(GetSpellLink(i, book):match("spell:(%d+)"))
 		t[name] = id
 	end
