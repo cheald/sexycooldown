@@ -226,6 +226,7 @@ do
 			f.finish:Stop()
 			f.throb:Stop()
 			f.pulse:Stop()
+			f.overlay:Show()
 			
 			f:SetFrameLevel(framelevelSerial)
 			f.overlay:SetFrameLevel(framelevelSerial + 1)
