@@ -1,6 +1,7 @@
 local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 local ACD3 = LibStub("AceConfigDialog-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
+local LibICD = LibStub("LibInternalCooldowns-1.0")
 local mod = SexyCooldown
 local _G = getfenv(0)
 local optFrame
@@ -36,7 +37,7 @@ local options = {
 }
 
 local function deepcopy(from)
-	to = {}
+	local to = {}
 	for k,v in pairs(from) do
 		if type(v) == "table" then
 			to[k] = deepcopy(v)
@@ -73,9 +74,25 @@ function mod:OnEnable()
 	self:BAG_UPDATE_COOLDOWN()
 	
 	self:RegisterEvent("UNIT_SPELLCAST_FAILED")
+	
+	LibICD.RegisterCallback(self, "InternalCooldowns_Proc")
+	LibICD.RegisterCallback(self, "InternalCooldowns_TalentProc")	
 end
 
 function mod:OnDisable()
+	LibICD.UnregisterCallback(self, "InternalCooldowns_Proc")
+	LibICD.UnregisterCallback(self, "InternalCooldowns_TalentProc")	
+end
+
+function mod:InternalCooldowns_TalentProc(callback, spellID, start, duration)
+	local name = GetSpellInfo(spellID)
+	self:AddCooldown(name, "spell", spellID, start, duration)
+end
+
+function mod:InternalCooldowns_Proc(callback, itemID, spellID, start, duration)
+	local texture = select(10, GetItemInfo(itemID))
+	local name = GetItemInfo(itemID)
+	self:AddCooldown(name, "spell", spellID, start, duration, texture)
 end
 
 function mod:CreateBar(name, settings)
@@ -105,7 +122,7 @@ function mod:Setup()
 	end
 end
 
-function mod:AddCooldown(cdType, item, start, duration, icon)
+function mod:AddCooldown(name, cdType, item, start, duration, icon)
 	local id 
 	if cdType == "item" then
 		id = tonumber(item)
@@ -119,7 +136,7 @@ function mod:AddCooldown(cdType, item, start, duration, icon)
 		error("Invalid item type or ID specified for :AddCooldown")
 	end
 	for _, frame in ipairs(frames) do
-		frame:CreateCooldown(cdType, id, start, duration, icon)
+		frame:CreateCooldown(name, cdType, id, start, duration, icon)
 	end
 end
 
@@ -170,7 +187,7 @@ do
 		for _, name in ipairs(lastPlayerSpell) do
 			start, duration, active = GetSpellCooldown(name)
 			if active == 1 and start > 0 and duration > 3 then
-				self:AddCooldown("spell", spells.PLAYER[name], start, duration)
+				self:AddCooldown(name, "spell", spells.PLAYER[name], start, duration)
 				added = true
 				break
 			end
@@ -180,7 +197,7 @@ do
 			for name, id in pairs(spells.PLAYER) do
 				start, duration, active = GetSpellCooldown(name)
 				if active == 1 and start > 0 and duration > 3 then
-					self:AddCooldown("spell", id, start, duration)
+					self:AddCooldown(name, "spell", id, start, duration)
 				end
 			end
 		end
@@ -190,20 +207,16 @@ do
 			for _, name in ipairs(lastPetSpell) do
 				start, duration, active = GetSpellCooldown(name)
 				if active == 1 and start > 0 and duration > 3 then
-					self:AddCooldown("spell", spells.PET[name], start, duration)
+					self:AddCooldown(name, "spell", spells.PET[name], start, duration)
 					added = true
 					break
 				end
 			end		
 			if not added then
-				if active == 1 and start > 0 and duration > 3 then
-					self:AddCooldown("spell", spells.PET[name], start, duration)
-				else
-					for name, id in pairs(spells.PET) do
-						start, duration, active = GetSpellCooldown(name)
-						if active == 1 and start > 0 and duration > 3 then
-							self:AddCooldown("spell", id, start, duration)
-						end
+				for name, id in pairs(spells.PET) do
+					start, duration, active = GetSpellCooldown(name)
+					if active == 1 and start > 0 and duration > 3 then
+						self:AddCooldown(name, "spell", id, start, duration)
 					end
 				end
 			end

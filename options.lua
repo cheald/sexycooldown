@@ -15,6 +15,7 @@ mod.barDefaults = {
 		y = -200,
 		time_max = 180,
 		time_compression = 0.4,
+		blacklist = {},
 		bar = {
 			font = "Fritz Quadrata TT",
 			fontsize = 8,
@@ -26,7 +27,8 @@ mod.barDefaults = {
 			fontColor = { r = 1, g = 1, b = 1, a = 1 },
 			width = 500,
 			height = 24,
-			minDuration = 3
+			minDuration = 3,
+			maxDuration = 0
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
@@ -69,8 +71,27 @@ function mod:GetOptionsTable(frame)
 			type = "group",
 			name = L["Icons"],
 			args = {
+				blacklistDesc = {
+					type = "description",
+					name = L["Right-click an icon on a cooldown bar to blacklist it and prevent it from showing in the future. To remove a cooldown from a blacklist, choose the cooldown to remove from this list."],
+					order = 12
+				},
+				blacklist = {
+					name = L["Blacklist"],
+					desc = L["Select an item to remove it from the blacklist."],
+					type = "select",
+					values = db.blacklist,
+					get = function() return false end,
+					set = function(info, v)
+						print((L["Removed %s from the SexyCooldown blacklist"]):format(db.blacklist[v]))
+						db.blacklist[v] = nil
+					end,
+					order = 11,
+					width = "full"
+				},
 				fontHeader = {
 					name = L["Cooldown Text"],
+					desc = "Cooldown description",
 					type = "header",
 					order = 120
 				},
@@ -173,13 +194,19 @@ function mod:GetOptionsTable(frame)
 				},
 				sizeOffset = {
 					type = "range",
-					name = L["Size"],
-					desc = L["Size"],
+					name = L["Icon size"],
+					desc = L["How big to make icons, relative to their parent bar"],
 					min = -15,
 					max = 15,
 					step = 1,
 					bigStep = 1,
-					order = 10
+					order = 10,
+					width = "full",
+				},
+				finish = {
+					type = "header",
+					name = L["Finish Behavior"],
+					order = 14
 				},
 				splashScale = {
 					type = "range",
@@ -316,7 +343,16 @@ function mod:GetOptionsTable(frame)
 					max = 60,
 					step = 1,
 					bigStep = 1
-				}
+				},
+				maxDuration = {
+					type = "range",
+					name = L["Maximum duration"],
+					desc = L["Cooldowns longer than this will not be shown. Set to 0 to show all cooldowns."],
+					min = 0,
+					max = 3600,
+					step = 1,
+					bigStep = 5
+				}				
 			}
 		}
 	}

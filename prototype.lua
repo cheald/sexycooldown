@@ -159,9 +159,19 @@ do
 		icon.animationOpacity:SetDuration(self.settings.icon.splashSpeed)
 	end
 	
-	function barPrototype:CreateCooldown(typ, id, startTime, duration, icon)
+	local function onClick(self, button)
+		if button == "RightButton" then
+			self:Blacklist()
+		end
+	end
+	
+	function barPrototype:CreateCooldown(name, typ, id, startTime, duration, icon)
 		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
+		if duration > self.settings.bar.maxDuration and self.settings.bar.maxDuration ~= 0 then return end
+		
 		local hyperlink = ("%s:%s"):format(typ, id)
+		if self.settings.blacklist[hyperlink] then return end
+		
 		local f = self.cooldowns[hyperlink]
 		if not f then
 			f = tremove(self.framePool)
@@ -169,6 +179,8 @@ do
 				f = setmetatable(CreateFrame("Frame"), cooldownMeta)
 				f:SetFrameStrata("HIGH")
 				f.tex = f:CreateTexture()
+				
+				f:SetScript("OnMouseUp", onClick)
 
 				f.overlay = CreateFrame("Frame", nil, f)
 				f.overlay:SetAllPoints()
@@ -223,6 +235,9 @@ do
 				tinsert(self.allFrames, f)
 			end
 			
+			f.name = name
+			f.icon = icon
+			
 			f.finish:Stop()
 			f.throb:Stop()
 			f.pulse:Stop()
@@ -250,7 +265,6 @@ do
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
 		end
-		f.icon = icon
 		f.startTime = startTime
 		f.duration = duration
 		self:SetMaxDuration()
@@ -435,7 +449,7 @@ function cooldownPrototype:HideTooltip()
 	GameTooltip:Hide()
 end
 	
-function cooldownPrototype:Expire()
+function cooldownPrototype:Expire(noanimate)
 	local parent = self.parent
 	for k, v in ipairs(parent.usedFrames) do
 		if v == self then
@@ -446,8 +460,13 @@ function cooldownPrototype:Expire()
 	if #parent.usedFrames == 0 then
 		parent:SetScript("OnUpdate", nil)
 	end
-	self.finish:Play()
+	
 	self.pulse:Stop()
+	if noanimate then
+		self:Hide()
+	else
+		self.finish:Play()
+	end
 	parent.cooldowns[self.hyperlink] = nil
 	parent.durations[self.hyperlink] = nil
 end
@@ -486,4 +505,9 @@ function cooldownPrototype:UpdateTime()
 	
 	local pos = getPos(remaining, timeMax, parent.settings.time_compression) * (parent.w - parent.h)
 	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
+end
+
+function cooldownPrototype:Blacklist()
+	self.parent.db.profile.blacklist[self.hyperlink] = self.name
+	self:Expire(true)
 end
