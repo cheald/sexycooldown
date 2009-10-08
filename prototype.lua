@@ -116,15 +116,15 @@ function barPrototype:Init()
 
 	self.fadeAlpha.parent = self
 	self.fadeAlpha:SetScript("OnPlay", function(self)
-		self.start = self.parent:GetAlpha()
+		self.startAlpha = self.parent:GetAlpha()
 		if self.parent.active then
-			self.endTime = 1
+			self.endAlpha = 1
 		else
-			self.endTime = self.parent.settings.bar.inactiveAlpha
+			self.endAlpha = self.parent.settings.bar.inactiveAlpha
 		end
 	end)
 	self.fadeAlpha:SetScript("OnUpdate", function(self)		
-		local new = self.start + ((self.endTime - self.start) * self:GetProgress())
+		local new = self.startAlpha + ((self.endAlpha - self.startAlpha) * self:GetProgress())
 		self.parent:SetAlpha(new)
 	end)	
 	
