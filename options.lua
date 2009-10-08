@@ -12,36 +12,37 @@ mod.baseOptions = {
 mod.barDefaults = {
 	profile = {
 		x = 0,
-		y = -200,
+		y = -300,
 		time_max = 180,
-		time_compression = 0.4,
+		time_compression = 0.3,
 		blacklist = {},
 		bar = {
 			font = "Fritz Quadrata TT",
-			fontsize = 8,
+			fontsize = 12,
 			texture = "Glaze",
 			border = "Blizzard Tooltip",
 			borderInset = 2,
 			borderColor = { r = 0.3019607843137255, g = 0.5215686274509804, b = 1, a = 1 },
 			backgroundColor = { r = 0.2, g = 0.2705882352941176, b = 0.6784313725490196, a = 1 },
 			fontColor = { r = 1, g = 1, b = 1, a = 1 },
-			width = 500,
-			height = 24,
+			width = 450,
+			height = 33,
 			minDuration = 3,
 			maxDuration = 0,
 			inactiveAlpha = 1
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
-			fontsize = 8,
+			fontsize = 10,
 			border = "Blizzard Tooltip",
 			borderColor = { r = 1, g = 1, b = 1, a = 1 },
 			fontColor = { r = 1, g = 1, b = 1, a = 1 },
-			sizeOffset = 2,
-			borderInset = 2,
+			sizeOffset = 4,
+			borderInset = 4,
 			showText = true,
 			splashScale = 4,
-			splashSpeed = 0.5
+			splashSpeed = 0.5,
+			borderSize = 13
 		}		
 	}
 }
@@ -168,7 +169,7 @@ function mod:GetOptionsTable(frame)
 					hasAlpha = true,
 					order = 52
 				},				
-				bordersize = {
+				borderSize = {
 					type = "range",
 					name = L["Border size"],
 					desc = L["Border size"],
@@ -197,8 +198,8 @@ function mod:GetOptionsTable(frame)
 					type = "range",
 					name = L["Icon size"],
 					desc = L["How big to make icons, relative to their parent bar"],
-					min = -15,
-					max = 15,
+					min = -25,
+					max = 25,
 					step = 1,
 					bigStep = 1,
 					order = 10,

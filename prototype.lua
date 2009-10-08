@@ -63,10 +63,8 @@ function barPrototype:Init()
 		self:StopMovingOrSizing()
 		local x, y = self:GetCenter()
 		local ox, oy = UIParent:GetCenter()
-		local scale = UIParent:GetScale()
-		x, y = x / scale, y / scale
-		self.settings.x = (x - ox) * scale
-		self.settings.y = (y - oy) * scale
+		self.settings.x = x - ox
+		self.settings.y = y - oy
 	end)
 	self:SetScript("OnSizeChanged", function()
 		self.settings.bar.width = self:GetWidth()
@@ -275,20 +273,25 @@ do
 				f.pulseAlpha:SetStartDelay(0.4)
 				
 				f.throb = f:CreateAnimationGroup()
-				f.throbSize = f.throb:CreateAnimation("Scale")
-				f.throbSize:SetSmoothing("NONE")
-				f.throbSize:SetScale(1.5, 1.5)
-				f.throbSize:SetDuration(0.05)
-				f.throbSize:SetEndDelay(0.3)
-				f.throb:SetScript("OnPlay", function()
+				-- f.throb:SetLooping("BOUNCE")
+				f.throbUp = f.throb:CreateAnimation("Scale")
+				f.throbUp:SetScale(2, 2)
+				f.throbUp:SetDuration(0.025)
+				f.throbUp:SetEndDelay(0.25)
+				
+				f.throb:SetScript("OnPlay", function(self)
 					f.overlay:Hide()
-					f.origFrameLevel = f:GetFrameLevel()
+					f.origFrameLevel = f.origFrameLevel or f:GetFrameLevel()
 					f:SetFrameLevel(128)
 				end)
-				f.throb:SetScript("OnFinished", function()
+				f.throb:SetScript("OnStop", function(self)
 					f.overlay:Show()
-					f:SetFrameLevel(f.origFrameLevel)
+					if f.origFrameLevel then
+						f:SetFrameLevel(f.origFrameLevel)
+						f.origFrameLevel = nil
+					end
 				end)
+				f.throb:SetScript("OnFinished", f.throb:GetScript("OnStop"))
 				
 				tinsert(self.allFrames, f)
 			end
@@ -337,7 +340,9 @@ do
 		local hyperlink = typ .. ":" .. id
 		for _, v in ipairs(self.usedFrames) do
 			if v.hyperlink == hyperlink and v.endTime - GetTime() > 0.3 then
-				v.throb:Play()
+				if not v.throb:IsPlaying() then
+					v.throb:Play()
+				end
 			end
 		end
 	end
@@ -530,10 +535,10 @@ function cooldownPrototype:SetCooldownTexture(typ, id)
 	end
 	if icon then
 		self.tex:SetTexture(icon)
-		self.tex:SetTexCoord(0.06, 0.94, 0.05, 0.94)
+		self.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
 		
 		self.overlay.tex:SetTexture(icon)
-		self.overlay.tex:SetTexCoord(0.06, 0.94, 0.05, 0.94)
+		self.overlay.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
 	end
 end
 

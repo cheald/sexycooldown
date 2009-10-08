@@ -97,7 +97,7 @@ end
 
 function mod:CreateBar(name, settings)
 	settings = settings or deepcopy(mod.barDefaults)
-	local frame = setmetatable(CreateFrame("Frame"), self.barMeta)
+	local frame = setmetatable(CreateFrame("Frame", nil, UIParent), self.barMeta)
 	if not name then
 		name = "Bar" .. self.db.profile.barSerial
 		self.db.profile.barSerial = self.db.profile.barSerial + 1
