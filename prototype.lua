@@ -181,6 +181,12 @@ do
 		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
 		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
 		icon.animationOpacity:SetDuration(self.settings.icon.splashSpeed)
+		
+		if self.settings.icon.disableTooltip then
+			icon:EnableMouse(false)
+		else
+			icon:EnableMouse(true)
+		end
 	end
 	
 	local function onClick(self, button)
@@ -535,7 +541,7 @@ function cooldownPrototype:SetCooldownTexture(typ, id)
 end
 
 function cooldownPrototype:ShowTooltip()
-	if not self.hyperlink or not self.useTooltip or self.parent.settings.bar.diableTooltip then 
+	if not self.hyperlink or not self.useTooltip then 
 		return
 	end
 	GameTooltip:SetOwner(self, "ANCHOR_CURSOR")

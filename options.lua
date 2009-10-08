@@ -229,6 +229,11 @@ function mod:GetOptionsTable(frame)
 					bigStep = 0.05,
 					order = 16
 				},
+				disableTooltip = {
+					type = "toggle",
+					name = L["Disable tooltips"],
+					desc = L["Don't show item or spell tooltips when you hover over their icons on the bar."]
+				}
 			}
 		},
 		bar = {
@@ -363,11 +368,6 @@ function mod:GetOptionsTable(frame)
 					max = 3600,
 					step = 1,
 					bigStep = 5
-				},
-				disableTooltip = {
-					type = "toggle",
-					name = L["Disable tooltips"],
-					desc = L["Don't show item or spell tooltips when you hover over their icons on the bar."]
 				}
 			}
 		}
