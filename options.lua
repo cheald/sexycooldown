@@ -11,8 +11,6 @@ mod.baseOptions = {
 
 mod.barDefaults = {
 	profile = {
-		x = 0,
-		y = -300,
 		time_max = 180,
 		time_compression = 0.3,
 		blacklist = {},
@@ -29,7 +27,9 @@ mod.barDefaults = {
 			height = 33,
 			minDuration = 3,
 			maxDuration = 0,
-			inactiveAlpha = 1
+			inactiveAlpha = 1,
+			x = 0,
+			y = -300			
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
@@ -50,25 +50,11 @@ mod.barDefaults = {
 function mod:GetOptionsTable(frame)
 	local db = frame.db.profile
 	
+	local showAdvanced = function()
+		return db.bar.advancedOptions ~= true
+	end
+	
 	local options = {
-		time_compression = {
-			type = "range",
-			name = L["Time Compression"],
-			desc = L["Time display scaling factor"],
-			min = 0.05,
-			max = 1.0,
-			step = 0.05,
-			bigStep = 0.05
-		},
-		time_max = {
-			type = "range",
-			name = L["Max Time"],
-			desc = L["Max time to display, in seconds"],
-			min = 10,
-			max = 600,
-			step = 1,
-			bigStep = 10
-		},
 		icon = {
 			type = "group",
 			name = L["Icons"],
@@ -176,8 +162,7 @@ function mod:GetOptionsTable(frame)
 					min = 4,
 					max = 24,
 					step = 1,
-					bigStep = 1,
-					width = "full"
+					bigStep = 1
 				},
 				borderInset = {
 					type = "range",
@@ -187,7 +172,6 @@ function mod:GetOptionsTable(frame)
 					max = 25,
 					step = 1,
 					bigStep = 1,
-					width = "full"
 				},		
 				generalheader = {
 					type = "header",
@@ -241,46 +225,91 @@ function mod:GetOptionsTable(frame)
 			type = "group",
 			name = L["Bar"],
 			args = {
+				generalOptions = {
+					type = "header",
+					name = L["General Options"],
+					order = 1
+				},
 				lock = {
 					type = "toggle",
 					name = L["Lock"],
 					desc = L["Lock this bar to prevent resizing or moving"],
-					order = 1					
+					order = 2					
 				},
-				height = {
+				flexible = {
+					type = "toggle",
+					name = L["Flexible"],
+					desc = L["Collapse the bar to the length of your longest active cooldown."]				,
+					order = 3
+				},				
+				advancedOptions = {
+					type = "toggle",
+					name = L["Advanced Options"],
+					desc = L["Enable advanced configuration options"],
+					order = 3,
+				},
+				timeHeader = {
+					type = "header",
+					name = L["Time and Duration settings"],
+					order = 20
+				},
+				time_compression = {
 					type = "range",
-					name = L["Height"],
-					desc = L["Height"],
-					min = 5,
-					max = 100,
+					name = L["Time Compression"],
+					desc = L["Time display scaling factor"],
+					min = 0.05,
+					max = 1.0,
+					step = 0.05,
+					bigStep = 0.05,
+					order = 21
+				},
+				time_max = {
+					type = "range",
+					name = L["Max Time"],
+					desc = L["Max time to display, in seconds"],
+					min = 10,
+					max = 600,
+					step = 1,
+					bigStep = 10,
+					order = 21
+				},				
+				minDuration = {
+					type = "range",
+					name = L["Minimum duration"],
+					desc = L["Cooldowns shorter than this will not be shown."],
+					min = 3,
+					max = 60,
 					step = 1,
 					bigStep = 1,
+					order = 22,
 				},
-				width = {
+				maxDuration = {
 					type = "range",
-					name = L["Width"],
-					desc = L["Width"],
-					min = 50,
-					max = 2000,
-					step = 1,
-					bigStep = 25		
-				},
-				inactiveAlpha = {
-					type = "range",
-					name = L["Inactive Opacity"],
-					desc = L["Opacity to set the bar to when a cooldown is not active"],
+					name = L["Maximum duration"],
+					desc = L["Cooldowns longer than this will not be shown. Set to 0 to show all cooldowns."],
 					min = 0,
-					max = 1,
-					step = 0.01,
-					bigStep = 0.05,
-					isPercent = true
+					max = 3600,
+					step = 1,
+					bigStep = 5,
+					order = 22
+				},				
+				bnbHeader = {
+					type = "header",
+					name = L["Border and Background"],
+					order = 50
 				},
-				font = {
+				texture = {
 					type = "select",
-					name = L["Font"],
-					desc = L["Font"],
-					dialogControl = 'LSM30_Font',
-					values = LSM:HashTable("font")
+					name = L["Background"],
+					desc = L["Background"],
+					dialogControl = 'LSM30_Statusbar',
+					values = LSM:HashTable("statusbar")
+				},
+				backgroundColor = {
+					type = "color",
+					name = L["Background color"],
+					desc = L["Background color"],
+					hasAlpha = true
 				},
 				border = {
 					type = "select",
@@ -289,6 +318,40 @@ function mod:GetOptionsTable(frame)
 					dialogControl = 'LSM30_Border',
 					values = LSM:HashTable("border")
 				},
+				borderColor = {
+					type = "color",
+					name = L["Border color"],
+					desc = L["Border color"],
+					hasAlpha = true		
+				},				
+				borderSize = {
+					type = "range",
+					name = L["Border size"],
+					desc = L["Border size"],
+					min = 4,
+					max = 24,
+					step = 1,
+					bigStep = 1,
+					hidden = showAdvanced
+				},
+				borderInset = {
+					type = "range",
+					name = L["Border insets"],
+					desc = L["Border insets"],
+					min = 0,
+					max = 16,
+					step = 1,
+					bigStep = 1,
+					hidden = showAdvanced					
+				},				
+				-- Font
+				font = {
+					type = "select",
+					name = L["Font"],
+					desc = L["Font"],
+					dialogControl = 'LSM30_Font',
+					values = LSM:HashTable("font")
+				},				
 				fontsize = {
 					type = "range",
 					name = L["Font size"],
@@ -304,72 +367,73 @@ function mod:GetOptionsTable(frame)
 					desc = L["Font Outline"],
 					values = outlines
 				},
-				texture = {
-					type = "select",
-					name = L["Background"],
-					desc = L["Background"],
-					dialogControl = 'LSM30_Statusbar',
-					values = LSM:HashTable("statusbar")
-				},
-				backgroundColor = {
-					type = "color",
-					name = L["Background color"],
-					desc = L["Background color"],
-					hasAlpha = true
-				},
-				borderColor = {
-					type = "color",
-					name = L["Border color"],
-					desc = L["Border color"],
-					hasAlpha = true		
-				},
 				fontColor = {
 					type = "color",
 					name = L["Font color"],
 					desc = L["Font color"],
 					hasAlpha = true		
 				},
-				borderSize = {
-					type = "range",
-					name = L["Border size"],
-					desc = L["Border size"],
-					min = 4,
-					max = 24,
-					step = 1,
-					bigStep = 1
+				-- Options
+				positioning = {
+					type = "header",
+					name = L["Position and Size"],
+					order = 399,					
+					hidden = showAdvanced,
 				},
-				borderInset = {
+				height = {
 					type = "range",
-					name = L["Border insets"],
-					desc = L["Border insets"],
+					name = L["Height"],
+					desc = L["Height"],
+					min = 5,
+					max = 100,
+					step = 1,
+					bigStep = 1,
+					hidden = showAdvanced,
+					order = 401,
+				},
+				width = {
+					type = "range",
+					name = L["Width"],
+					desc = L["Width"],
+					min = 50,
+					max = 2000,
+					step = 1,
+					bigStep = 25,
+					hidden = showAdvanced,
+					order = 400,
+				},
+				x = {
+					type = "range",
+					name = L["Horizontal Position"],
+					desc = L["Horizontal offset from screen center"],
+					min = -2000,
+					max = 2000,
+					step = 1,
+					bigStep = 1,
+					hidden = showAdvanced,
+					order = 500					
+				},
+				y = {
+					type = "range",
+					name = L["Vertical Offset"],
+					desc = L["Vertical offset from screen center"],
+					min = -2000,
+					max = 2000,
+					step = 1,
+					bigStep = 1,
+					hidden = showAdvanced,
+					order = 501,
+				},				
+				inactiveAlpha = {
+					type = "range",
+					name = L["Inactive Opacity"],
+					desc = L["Opacity to set the bar to when a cooldown is not active"],
 					min = 0,
-					max = 16,
-					step = 1,
-					bigStep = 1		
-				},
-				flexible = {
-					type = "toggle",
-					name = L["Flexible"],
-					desc = L["Collapse the bar to the length of your longest active cooldown."]				
-				},
-				minDuration = {
-					type = "range",
-					name = L["Minimum duration"],
-					desc = L["Cooldowns shorter than this will not be shown."],
-					min = 3,
-					max = 60,
-					step = 1,
-					bigStep = 1
-				},
-				maxDuration = {
-					type = "range",
-					name = L["Maximum duration"],
-					desc = L["Cooldowns longer than this will not be shown. Set to 0 to show all cooldowns."],
-					min = 0,
-					max = 3600,
-					step = 1,
-					bigStep = 5
-				}
+					max = 1,
+					step = 0.01,
+					bigStep = 0.05,
+					isPercent = true
+				},				
 			}
 		}
 	}

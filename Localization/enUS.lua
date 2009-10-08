@@ -12,10 +12,6 @@ L["Create new bar"] = true
 -- no localization
 
 -- ./options.lua
-L["Time Compression"] = true
-L["Time display scaling factor"] = true
-L["Max Time"] = true
-L["Max time to display, in seconds"] = true
 L["Icons"] = true
 L["Right-click an icon on a cooldown bar to blacklist it and prevent it from showing in the future. To remove a cooldown from a blacklist, choose the cooldown to remove from this list."] = true
 L["Blacklist"] = true
@@ -40,24 +36,38 @@ L["Splash scale"] = true
 L["How big (or small) icons will 'splash' when their cooldown is done"] = true
 L["Splash speed"] = true
 L["How quickly to play the splash animation once a cooldown is done"] = true
+L["Disable tooltips"] = true
+L["Don't show item or spell tooltips when you hover over their icons on the bar."] = true
 L["Bar"] = true
+L["General Options"] = true
 L["Lock"] = true
 L["Lock this bar to prevent resizing or moving"] = true
-L["Height"] = true
-L["Width"] = true
-L["Inactive Opacity"] = true
-L["Opacity to set the bar to when a cooldown is not active"] = true
-L["Background"] = true
-L["Background color"] = true
-L["Border insets"] = true
 L["Flexible"] = true
 L["Collapse the bar to the length of your longest active cooldown."] = true
+L["Advanced Options"] = true
+L["Enable advanced configuration options"] = true
+L["Time and Duration settings"] = true
+L["Time Compression"] = true
+L["Time display scaling factor"] = true
+L["Max Time"] = true
+L["Max time to display, in seconds"] = true
 L["Minimum duration"] = true
 L["Cooldowns shorter than this will not be shown."] = true
 L["Maximum duration"] = true
 L["Cooldowns longer than this will not be shown. Set to 0 to show all cooldowns."] = true
-L["Disable tooltips"] = true
-L["Don't show item or spell tooltips when you hover over their icons on the bar."] = true
+L["Border and Background"] = true
+L["Background"] = true
+L["Background color"] = true
+L["Border insets"] = true
+L["Position and Size"] = true
+L["Height"] = true
+L["Width"] = true
+L["Horizontal Position"] = true
+L["Horizontal offset from screen center"] = true
+L["Vertical Offset"] = true
+L["Vertical offset from screen center"] = true
+L["Inactive Opacity"] = true
+L["Opacity to set the bar to when a cooldown is not active"] = true
 
 -- ./prototype.lua
 -- no localization

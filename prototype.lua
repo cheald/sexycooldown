@@ -51,8 +51,9 @@ function barPrototype:Init()
 	self.allFrames = {}
 	self.durations = {}
 	self:SetBackdrop(mod.backdrop)
-	self:SetPoint("CENTER", UIParent, "CENTER", self.settings.x, self.settings.y)	
-	-- self:SetPoint("CENTER", UIParent, "CENTER")	
+	if not self.settings.bar.x then
+		self.settings.bar.x, self.settings.bar.y = self.settings.x, self.settings.y
+	end
 	
 	self:SetScript("OnMouseDown", function(self)
 		if not self.db.profile.bar.lock then
@@ -63,8 +64,8 @@ function barPrototype:Init()
 		self:StopMovingOrSizing()
 		local x, y = self:GetCenter()
 		local ox, oy = UIParent:GetCenter()
-		self.settings.x = x - ox
-		self.settings.y = y - oy
+		self.settings.bar.x = x - ox
+		self.settings.bar.y = y - oy
 	end)
 	self:SetScript("OnSizeChanged", function()
 		self.settings.bar.width = self:GetWidth()
@@ -462,6 +463,7 @@ do
 end
 
 function barPrototype:UpdateBarLook()
+	self:SetPoint("CENTER", UIParent, "CENTER", self.settings.bar.x, self.settings.bar.y)
 	self:SetWidth(self.settings.bar.width)
 	self:SetHeight(self.settings.bar.height)
 	self:SetLabels()
