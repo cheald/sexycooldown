@@ -199,7 +199,7 @@ do
 		local alpha = self:GetAlpha()
 		if alpha ~= self.settings.bar.inactiveAlpha then
 			self.fade:Stop()
-			self.fadeAlpha:SetDuration(0.6)
+			self.fadeAlpha:SetDuration(0.33)
 			self.fade:Play()
 		end
 	end
@@ -215,7 +215,7 @@ do
 		if not f then
 			f = tremove(self.framePool)
 			if not f then
-				f = setmetatable(CreateFrame("Frame"), cooldownMeta)
+				f = setmetatable(CreateFrame("Frame"), cooldownMeta)				
 				f:SetFrameStrata("HIGH")
 				f.tex = f:CreateTexture()
 				
@@ -299,6 +299,7 @@ do
 					end
 				end
 			end
+			f:SetParent(self)
 			f.parent = self						
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
