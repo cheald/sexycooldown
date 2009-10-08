@@ -205,6 +205,9 @@ do
 	end
 	
 	function barPrototype:CreateCooldown(name, typ, id, startTime, duration, icon)
+		if not duration then
+			error((":CreateCooldown requires a numeric duration, %s %s %s"):format(tostring(name), tostring(typ), tostring(id)))
+		end
 		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
 		if duration > self.settings.bar.maxDuration and self.settings.bar.maxDuration ~= 0 then return end
 		

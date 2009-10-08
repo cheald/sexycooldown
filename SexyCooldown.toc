@@ -4,7 +4,7 @@
 ## Author: Antiarc
 ## Version: 1.0
 ## SavedVariables: SexyCooldownDB
-## OptionalDeps: LibSharedMedia-3.0
+## OptionalDeps: Ace3, LibSharedMedia-3.0, LibInternalCooldowns-1.0
 
 embeds.xml
 Localization\enUS.lua
