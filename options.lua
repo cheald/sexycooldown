@@ -28,7 +28,8 @@ mod.barDefaults = {
 			width = 500,
 			height = 24,
 			minDuration = 3,
-			maxDuration = 0
+			maxDuration = 0,
+			inactiveAlpha = 1
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
@@ -257,7 +258,17 @@ function mod:GetOptionsTable(frame)
 					max = 2000,
 					step = 1,
 					bigStep = 25		
-				},				
+				},
+				inactiveAlpha = {
+					type = "range",
+					name = L["Inactive Opacity"],
+					desc = L["Opacity to set the bar to when a cooldown is not active"],
+					min = 0,
+					max = 1,
+					step = 0.01,
+					bigStep = 0.05,
+					isPercent = true
+				},
 				font = {
 					type = "select",
 					name = L["Font"],

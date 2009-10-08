@@ -108,6 +108,7 @@ function mod:CreateBar(name, settings)
 	options.args.bars.args[name] = self:GetOptionsTable(frame)
 	frame:Init()
 	tinsert(frames, frame)
+	mod.frames = frames
 	return frame
 end
 

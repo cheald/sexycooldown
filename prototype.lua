@@ -111,6 +111,23 @@ function barPrototype:Init()
 	end)
 	self.grip = grip
 	
+	self.fade = self:CreateAnimationGroup()
+	self.fadeAlpha = self.fade:CreateAnimation()
+
+	self.fadeAlpha.parent = self
+	self.fadeAlpha:SetScript("OnPlay", function(self)
+		self.start = self.parent:GetAlpha()
+		if self.parent.active then
+			self.endTime = 1
+		else
+			self.endTime = self.parent.settings.bar.inactiveAlpha
+		end
+	end)
+	self.fadeAlpha:SetScript("OnUpdate", function(self)		
+		local new = self.start + ((self.endTime - self.start) * self:GetProgress())
+		self.parent:SetAlpha(new)
+	end)	
+	
 	self:UpdateBarLook()
 end
 
@@ -165,6 +182,28 @@ do
 		end
 	end
 	
+	function barPrototype:Activate()
+		if self.active then return end
+		self.active = true		
+		local alpha = self:GetAlpha()
+		if alpha ~= 1 then
+			self.fade:Stop()
+			self.fadeAlpha:SetDuration(0.3)
+			self.fade:Play()
+		end
+	end
+	
+	function barPrototype:Deactivate()
+		if not self.active then return end
+		self.active = false
+		local alpha = self:GetAlpha()
+		if alpha ~= self.settings.bar.inactiveAlpha then
+			self.fade:Stop()
+			self.fadeAlpha:SetDuration(0.6)
+			self.fade:Play()
+		end
+	end
+	
 	function barPrototype:CreateCooldown(name, typ, id, startTime, duration, icon)
 		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
 		if duration > self.settings.bar.maxDuration and self.settings.bar.maxDuration ~= 0 then return end
@@ -204,7 +243,6 @@ do
 				end)
 				
 				f.finishScale = f.finish:CreateAnimation("Scale")
-				
 				
 				f.animationOpacity = f.finish:CreateAnimation("Alpha")
 				f.animationOpacity:SetChange(-1)				
@@ -264,6 +302,7 @@ do
 			f.parent = self						
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
+			self:Activate()
 		end
 		f.startTime = startTime
 		f.duration = duration
@@ -404,6 +443,10 @@ function barPrototype:UpdateBarLook()
 	else
 		self.grip:Show()
 	end
+	
+	if not self.active then
+		self:SetAlpha(self.settings.bar.inactiveAlpha)
+	end
 end
 
 function barPrototype:UpdateIconLook()
@@ -459,6 +502,7 @@ function cooldownPrototype:Expire(noanimate)
 	end
 	if #parent.usedFrames == 0 then
 		parent:SetScript("OnUpdate", nil)
+		parent:Deactivate()
 	end
 	
 	self.pulse:Stop()
