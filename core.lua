@@ -164,8 +164,10 @@ do
 			local start, duration = GetInventoryItemCooldown("player", i)
 			if start > 0 and duration > 3 then
 				local link = GetInventoryItemLink("player",i)
+				local id = link:match("item:(%d+)")
+				local name = GetItemInfo(id)
 				if link then
-					self:AddCooldown("item", link, start, duration)
+					self:AddCooldown(name, "item", id, start, duration)
 				end
 			end
 		end
@@ -176,7 +178,9 @@ do
 				if start > 0 and duration > 3 then
 					local link = GetContainerItemLink(i,j)
 					if link then
-						self:AddCooldown("item", link, start, duration)
+						local id = link:match("item:(%d+)")
+						local name = GetItemInfo(id)
+						self:AddCooldown(name, "item", id, start, duration)
 					end
 				end
 			end

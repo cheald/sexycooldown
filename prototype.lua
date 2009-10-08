@@ -44,7 +44,7 @@ mod.bench, mod.report = bench, report
 ------------------------------------------------------
 
 function barPrototype:Init()
-	self:SetFrameStrata("HIGH")
+	self:SetFrameStrata("MEDIUM")
 	self.settings = self.db.profile
 	self.usedFrames = {}
 	self.cooldowns = {}
@@ -132,7 +132,7 @@ function barPrototype:Init()
 end
 
 do
-	local framelevelSerial = 1
+	local framelevelSerial = 10
 	local delta = 0
 	local throttle = 1 / 33
 	function barPrototype:OnUpdate(t)
@@ -148,7 +148,7 @@ do
 		edgeFile = [[Interface\GLUES\COMMON\TextPanel-Border.blp]],
 		insets = {left = 2, top = 2, right = 2, bottom = 2},
 		edgeSize = 8,
-		tile = true					
+		tile = false		
 	}	
 	function barPrototype:UpdateSingleIconLook(icon)
 		backdrop.edgeFile = LSM:Fetch("border", self.settings.icon.border) or backdrop.edgeFile
@@ -156,19 +156,26 @@ do
 		
 		icon.tex:SetPoint("TOPLEFT", icon, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)
 		icon.tex:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -self.settings.icon.borderInset, self.settings.icon.borderInset)
+		icon.overlay.tex:SetPoint("TOPLEFT", icon.overlay, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)
+		icon.overlay.tex:SetPoint("BOTTOMRIGHT", icon.overlay, "BOTTOMRIGHT", -self.settings.icon.borderInset, self.settings.icon.borderInset)
 		
+		icon:SetBackdrop(backdrop)
 		icon.overlay:SetBackdrop(backdrop)
 		local c = self.settings.icon.borderColor
+		icon:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
 		icon.overlay:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
 		
-		self:UpdateLabel(icon.fs, self.settings.icon)		
+		self:UpdateLabel(icon.fs, self.settings.icon)
+		self:UpdateLabel(icon.overlay.fs, self.settings.icon)
 		icon:SetWidth(self:GetHeight() + self.settings.icon.sizeOffset)
-		icon:SetHeight(self:GetHeight() + self.settings.icon.sizeOffset)
+		icon:SetHeight(self:GetHeight() + self.settings.icon.sizeOffset)		
 		
 		if self.settings.icon.showText then
 			icon.fs:Show()
+			icon.overlay.fs:Show()
 		else
 			icon.fs:Hide()
+			icon.overlay.fs:Hide()
 		end
 		
 		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
@@ -218,20 +225,21 @@ do
 		if not f then
 			f = tremove(self.framePool)
 			if not f then
-				f = setmetatable(CreateFrame("Frame"), cooldownMeta)				
-				f:SetFrameStrata("HIGH")
-				f.tex = f:CreateTexture()
-				
+				f = setmetatable(CreateFrame("Frame"), cooldownMeta)
 				f:SetScript("OnMouseUp", onClick)
+				
+				f.tex = f:CreateTexture(nil, "ARTWORK")
 
 				f.overlay = CreateFrame("Frame", nil, f)
 				f.overlay:SetAllPoints()
-				f.overlay:SetFrameStrata("HIGH")
-				f.overlay.tex = f.overlay:CreateTexture()
-				f.overlay.tex:SetAllPoints()
+				f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
 				
-				f.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
+				f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
 				f.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
+				
+				f.overlay.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
+				f.overlay.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
+				
 				f:SetScript("OnEnter", f.ShowTooltip)
 				f:SetScript("OnLeave", f.HideTooltip)
 				f:EnableMouse(true)
@@ -239,38 +247,44 @@ do
 				f.finish = f:CreateAnimationGroup()
 				f.finish:SetScript("OnPlay", function(self)
 					f.overlay:Hide()
+					f.fs:Hide()
 				end)
 				f.finish:SetScript("OnFinished", function(self)
 					f:Hide()
+					f.fs:Show()
 					f.overlay:Show()
 				end)
-				
-				f.finishScale = f.finish:CreateAnimation("Scale")
+				f.finishScale = f.finish:CreateAnimation("Scale")				
 				
 				f.animationOpacity = f.finish:CreateAnimation("Alpha")
 				f.animationOpacity:SetChange(-1)				
 				
-				f.pulse = f:CreateAnimationGroup()
+				f.pulse = f.overlay:CreateAnimationGroup()
 				f.pulse:SetLooping("BOUNCE")
 				f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
-				f.pulseAlpha:SetChange(-0.9)
-				f.pulseAlpha:SetDuration(1)
-				f.pulseAlpha:SetEndDelay(0.2)
-				f.pulseAlpha:SetStartDelay(0.2)
+				f.pulseAlpha:SetMaxFramerate(30)
+				f.pulseAlpha:SetChange(-1)
+				f.pulseAlpha:SetDuration(0.4)
+				f.pulseAlpha:SetEndDelay(0.4)
+				f.pulseAlpha:SetStartDelay(0.4)
 				
-				f.throb = f:CreateAnimationGroup()
+				f.throb = f.overlay:CreateAnimationGroup()
 				f.throbSize = f.throb:CreateAnimation("Scale")
 				f.throbSize:SetSmoothing("NONE")
-				f.throbSize:SetScale(1.8, 1.8)
-				f.throbSize:SetDuration(0.1)
-				f.throbAlpha = f.throb:CreateAnimation("Alpha")
-				f.throbAlpha:SetChange(1)
-				f.throbAlpha:SetDuration(0.3)
+				f.throbSize:SetScale(1.5, 1.5)
+				f.throbSize:SetDuration(0.05)
+				f.throbSize:SetEndDelay(0.3)
 				f.throb:SetScript("OnPlay", function()
-					f.overlay:Hide()
+					if f.pulse:IsPlaying() then f.pulse:Pause() end
+					f.overlay:SetAlpha(1)
+					f.overlay.origFrameLevel = f.overlay:GetFrameLevel()
+					f.overlay:SetFrameLevel(128)
+					-- f.overlay:Hide()
 				end)
 				f.throb:SetScript("OnFinished", function()
-					f.overlay:Show()
+					if f.pulse:IsPaused() then f.pulse:Play() end
+					f.overlay:SetFrameLevel(f.overlay.origFrameLevel)
+					-- f.overlay:Show()
 				end)
 				
 				tinsert(self.allFrames, f)
@@ -283,38 +297,37 @@ do
 			f.throb:Stop()
 			f.pulse:Stop()
 			f.overlay:Show()
+			f:SetAlpha(1)	
+			f.overlay:SetAlpha(1)			
+			
+			f:SetParent(self)
 			
 			f:SetFrameLevel(framelevelSerial)
-			f.overlay:SetFrameLevel(framelevelSerial + 1)
-			framelevelSerial = framelevelSerial + 2
+			f.overlay:SetFrameLevel(framelevelSerial + 60)
+			framelevelSerial = framelevelSerial + 5
+			if framelevelSerial > 60 then
+				framelevelSerial = 10
+			end
 			f.useTooltip = typ == "spell" or typ == "item"
 			f.hyperlink = hyperlink
 			self.cooldowns[f.hyperlink] = f
 			self.durations[f.hyperlink] = duration
 			
 			f.endTime = startTime + duration
-			for k, v in pairs(self.cooldowns) do
-				if v ~= f and math.abs(v.endTime - f.endTime) < 5 then
-					if f:GetFrameLevel() > v:GetFrameLevel() then
-						f.pulse:Play()
-					else
-						v.pulse:Play()
-					end
-				end
-			end
-			f:SetParent(self)
-			f.parent = self						
+			
+			f.parent = self			
+			f:SetCooldownTexture(typ, id)			
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
+			f:Show()
 			self:Activate()
 		end
 		f.startTime = startTime
 		f.duration = duration
 		self:SetMaxDuration()
-		f:SetCooldown(typ, id, startTime + duration)
-		f:Show()
-		self:SetScript("OnUpdate", self.OnUpdate)
-		f:Show()
+		f.lastOverlapCheck = 0
+		f:UpdateTime()
+		self:SetScript("OnUpdate", self.OnUpdate)		
 	end
 	
 	function barPrototype:CastFailure(typ, id)
@@ -358,7 +371,7 @@ function barPrototype:SetLabel(val)
 	l:SetPoint("CENTER", self, "LEFT", pos, 0)
 	if val > 3600 then
 		val = ("%2.0fh"):format(val / 3600)
-	elseif val > 60 then
+	elseif val >= 60 then
 		val = ("%2.0fm"):format(val / 60)
 	end	
 	l:SetText(val)
@@ -381,6 +394,8 @@ function barPrototype:SetLabels()
 	
 	if minutes > 5 and math_fmod(minutes, 5) ~= 0 then
 		self:SetLabel(minutes * 60)
+	elseif minutes < 1 and self:GetTimeMax() ~= 30 then
+		self:SetLabel(self:GetTimeMax())
 	end
 	
 	for i = 1, math_min(minutes, 5) do
@@ -388,7 +403,9 @@ function barPrototype:SetLabels()
 	end
 
 	for _, val in ipairs(stock) do
-		self:SetLabel(val)
+		if val <= self:GetTimeMax() then
+			self:SetLabel(val)
+		end
 	end
 end
 
@@ -444,8 +461,10 @@ function barPrototype:UpdateBarLook()
 	self:UpdateBarBackdrop()
 	if self.settings.bar.lock then
 		self.grip:Hide()
+		self:EnableMouse(false)
 	else
 		self.grip:Show()
+		self:EnableMouse(true)
 	end
 	
 	if not self.active then
@@ -464,10 +483,39 @@ function barPrototype:UpdateLook()
 	self:UpdateIconLook()
 end
 
+function barPrototype:CheckOverlap(current)
+	local l, r = current:GetLeft(), current:GetRight()
+	if not l or not r then return end
+	
+	current.lastOverlapCheck = current.lastOverlapCheck or 0
+	if GetTime() - current.lastOverlapCheck < 3 then return end
+	current.lastOverlapCheck = GetTime()
+	
+	current.pulsing = false
+	for _, icon in ipairs(self.usedFrames) do
+		if icon ~= current then
+			local ir, il = icon:GetRight(), icon:GetLeft()
+			if (ir >= l and ir <= r) or (il >= l and il <= r) then
+				local overlap = math.min(math.abs(ir - l), math.abs(il - r))
+				if overlap > 5 then
+					local frame = icon:GetFrameLevel() >= current:GetFrameLevel() and icon or current
+					if not frame.pulse:IsPlaying() then
+						frame.pulse:Play()
+					end
+					frame.pulsing = true
+				end
+			end
+		end
+	end
+	if not current.pulsing and current.pulse:IsPlaying() then
+		current.pulse:Stop()
+	end	
+end
+
 ------------------------------------------------------
 -- Button prototype
 ------------------------------------------------------
-function cooldownPrototype:SetCooldown(typ, id)
+function cooldownPrototype:SetCooldownTexture(typ, id)
 	local icon = self.icon
 	if not icon then
 		local _
@@ -480,11 +528,14 @@ function cooldownPrototype:SetCooldown(typ, id)
 	if icon then
 		self.tex:SetTexture(icon)
 		self.tex:SetTexCoord(0.06, 0.94, 0.05, 0.94)
+		
+		self.overlay.tex:SetTexture(icon)
+		self.overlay.tex:SetTexCoord(0.06, 0.94, 0.05, 0.94)
 	end
 end
 
 function cooldownPrototype:ShowTooltip()
-	if not self.hyperlink or not self.useTooltip then 
+	if not self.hyperlink or not self.useTooltip or self.parent.settings.bar.diableTooltip then 
 		return
 	end
 	GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
@@ -526,12 +577,12 @@ function cooldownPrototype:UpdateTime()
 	local iRemaining = math_floor(remaining)
 	local text
 	if iRemaining ~= self.lastRemaining or iRemaining < 10 then
+		parent:CheckOverlap(self)
 		if remaining > 60 then
 			local minutes = math_floor(remaining / 60)
 			local seconds = math_fmod(remaining, 60)
 			text = string_format("%2.0f:%02.0f", minutes, seconds)
 		elseif remaining <= 10 then
-			self.pulse:Stop()
 			text = string_format("%2.1f", remaining)
 		else
 			text = string_format("%2.0f", remaining)
@@ -539,6 +590,8 @@ function cooldownPrototype:UpdateTime()
 		if self.fs.lastText ~= text then
 			self.fs:SetText(text)
 			self.fs.lastText = text
+			self.overlay.fs:SetText(text)
+			self.overlay.fs.lastText = text
 		end
 		self.lastRemaining = iRemaining
 	end
@@ -551,8 +604,11 @@ function cooldownPrototype:UpdateTime()
 		self:Expire()
 	end
 	
-	local pos = getPos(remaining, timeMax, parent.settings.time_compression) * (parent.w - parent.h)
+	local barWidth = (parent.w - parent.h)
+	local base = parent.settings.time_compression
+	local pos = getPos(remaining, timeMax, base) * barWidth
 	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
+	-- print(self.name, self.overlay:GetFrameLevel())
 end
 
 function cooldownPrototype:Blacklist()

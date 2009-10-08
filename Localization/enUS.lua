@@ -56,6 +56,8 @@ L["Minimum duration"] = true
 L["Cooldowns shorter than this will not be shown."] = true
 L["Maximum duration"] = true
 L["Cooldowns longer than this will not be shown. Set to 0 to show all cooldowns."] = true
+L["Disable tooltips"] = true
+L["Don't show item or spell tooltips when you hover over their icons on the bar."] = true
 
 -- ./prototype.lua
 -- no localization

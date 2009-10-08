@@ -63,10 +63,10 @@ function mod:GetOptionsTable(frame)
 			type = "range",
 			name = L["Max Time"],
 			desc = L["Max time to display, in seconds"],
-			min = 30,
+			min = 10,
 			max = 600,
 			step = 1,
-			bigStep = 30
+			bigStep = 10
 		},
 		icon = {
 			type = "group",
@@ -363,7 +363,12 @@ function mod:GetOptionsTable(frame)
 					max = 3600,
 					step = 1,
 					bigStep = 5
-				}				
+				},
+				disableTooltip = {
+					type = "toggle",
+					name = L["Disable tooltips"],
+					desc = L["Don't show item or spell tooltips when you hover over their icons on the bar."]
+				}
 			}
 		}
 	}
