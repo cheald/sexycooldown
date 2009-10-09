@@ -5,8 +5,10 @@ local L = AceLocale:NewLocale("SexyCooldown", "enUS", true)
 if not L then return end 
  
 -- ./core.lua
-L["Bars"] = true
+L["Select an options sub-category to get started."] = true
 L["Create new bar"] = true
+L["Bars"] = true
+L["Profiles"] = true
 
 -- ./loadstub.lua
 -- no localization

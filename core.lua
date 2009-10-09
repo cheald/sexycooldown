@@ -20,18 +20,28 @@ local options = {
 	inline = true,
 	childGroups = "tab",
 	args = {
+		defaultArgs = {
+			type = "group",
+			name = "Default Args",
+			args = {
+				instructions = {
+					type = "description",
+					name = L["Select an options sub-category to get started."]
+				}
+				-- createBar = {
+					-- type = "execute",
+					-- name = L["Create new bar"],
+					-- func = function()
+						-- mod:CreateBar()
+					-- end			
+				-- }
+			}
+		},
 		bars = {
 			type = "group",
 			childGroups = "select",
 			name = L["Bars"],
 			args = {}
-		},
-		createBar = {
-			type = "execute",
-			name = L["Create new bar"],
-			func = function()
-				mod:CreateBar()
-			end			
 		}
 	}
 }
@@ -52,8 +62,13 @@ local lastPlayerSpell, lastPetSpell = {}, {}
 
 function mod:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("SexyCooldownDB", defaults)
-	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SexyCooldown", options.args.bars)
-	optFrame = ACD3:AddToBlizOptions("SexyCooldown")
+	
+	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SexyCooldown", options)
+	
+	ACD3:AddToBlizOptions("SexyCooldown", nil, nil, "defaultArgs")
+	ACD3:AddToBlizOptions("SexyCooldown", L["Bars"], "SexyCooldown", "bars")
+	ACD3:AddToBlizOptions("SexyCooldown", L["Profiles"], "SexyCooldown", "profiles")
 	
 	self:Setup()
 end
@@ -75,6 +90,10 @@ function mod:OnEnable()
 	
 	self:RegisterEvent("UNIT_SPELLCAST_FAILED")
 	
+	self.db.RegisterCallback(self, "OnProfileChanged", "ReloadAddon")
+	self.db.RegisterCallback(self, "OnProfileCopied", "ReloadAddon")
+	self.db.RegisterCallback(self, "OnProfileReset", "ReloadAddon")
+	
 	LibICD.RegisterCallback(self, "InternalCooldowns_Proc")
 	LibICD.RegisterCallback(self, "InternalCooldowns_TalentProc")	
 end
@@ -95,6 +114,19 @@ function mod:InternalCooldowns_Proc(callback, itemID, spellID, start, duration)
 	self:AddCooldown(name, "spell", spellID, start, duration, texture)
 end
 
+local oldframes = {}
+function mod:ReloadAddon()
+	for _, v in ipairs(frames) do
+		local frame = tremove(frames)
+		frame:Expire()
+		tinsert(oldframes, frame)
+	end
+	
+	self:Setup()
+	self:SPELL_UPDATE_COOLDOWN()
+	self:BAG_UPDATE_COOLDOWN()
+end
+
 function mod:CreateBar(name, settings)
 	settings = settings or deepcopy(mod.barDefaults)
 	local frame = setmetatable(CreateFrame("Frame", nil, UIParent), self.barMeta)
@@ -104,22 +136,20 @@ function mod:CreateBar(name, settings)
 	end
 	frame.name = name
 	self.db.profile.bars[name] = true
-	frame.db = self.db:RegisterNamespace(name, mod.barDefaults)
+	frame.db = self.db:GetNamespace(name, true) or self.db:RegisterNamespace(name, mod.barDefaults)
 	options.args.bars.args[name] = self:GetOptionsTable(frame)
 	frame:Init()
-	tinsert(frames, frame)
-	mod.frames = frames
 	return frame
 end
 
 function mod:Setup()
 	local count = 0
 	for k, v in pairs(self.db.profile.bars) do
-		self:CreateBar(k, v)
+		tinsert(frames, self:CreateBar(k, v))
 		count = count + 1
 	end
 	if count == 0 then
-		self:CreateBar()
+		tinsert(frames, self:CreateBar())
 	end
 end
 

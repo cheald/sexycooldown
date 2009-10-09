@@ -18,8 +18,8 @@ local barPrototype = setmetatable({}, {__index = dummyFrame})
 
 mod.barMeta = {__index = barPrototype}
 
-barPrototype.framePool = {}
-barPrototype.stringPool = {}
+local framePool = {}
+local stringPool = {}
 
 local totals = {}
 local loops = {}
@@ -49,8 +49,8 @@ function barPrototype:Init()
 	self.settings = self.db.profile
 	self.usedFrames = {}
 	self.cooldowns = {}
-	self.allFrames = {}
 	self.durations = {}
+	
 	self:SetBackdrop(mod.backdrop)
 	if not self.settings.bar.x then
 		self.settings.bar.x, self.settings.bar.y = self.settings.x, self.settings.y
@@ -180,9 +180,9 @@ function barPrototype:Init()
 	self:UpdateBarLook()
 	
 	-- Preload a few cooldowns, and fix that weird-ass scaling animation bug
-	for i = 1, 5 do
-		self:CreateNewCooldownFrame()
-	end
+	-- for i = 1, 5 do
+		-- self:CreateNewCooldownFrame()
+	-- end
 end
 
 do
@@ -355,8 +355,9 @@ do
 		end)
 		f.throb:SetScript("OnFinished", f.throb:GetScript("OnStop"))
 		
-		tinsert(self.allFrames, f)
-		tinsert(self.framePool, f)
+		f.parent = self
+		
+		tinsert(framePool, f)
 		return f
 	end
 	
@@ -372,10 +373,10 @@ do
 		
 		local f = self.cooldowns[hyperlink]
 		if not f then
-			f = tremove(self.framePool)
+			f = tremove(framePool)
 			if not f then
 				self:CreateNewCooldownFrame()
-				f = tremove(self.framePool)
+				f = tremove(framePool)
 			end
 			
 			f.name = name
@@ -446,20 +447,21 @@ function barPrototype:SetMaxDuration()
 end
 
 function barPrototype:GetTimeMax()
-	local t = self.settings.bar.flexible and self.max_duration or self.settings.time_max
+	local t = self.settings.bar.flexible and self.max_duration or self.settings.bar.time_max
 	return t
 end
 
 function barPrototype:CreateLabel()
-	local s = tremove(self.stringPool) or self:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
+	local s = tremove(stringPool) or self:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
 	tinsert(self.usedStrings, s)
+	s:SetParent(self)
 	s:Show()
 	return s
 end
 
 function barPrototype:SetLabel(val)
 	local l = self:CreateLabel(self)
-	local pos = getPos(val, self:GetTimeMax(), self.settings.time_compression) * (self.settings.bar.width - self.settings.bar.height)
+	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self.settings.bar.width - self.settings.bar.height)
 	l:SetPoint("CENTER", self, "LEFT", pos, 0)
 	if val > 3600 then
 		val = ("%2.0fh"):format(val / 3600)
@@ -476,7 +478,7 @@ function barPrototype:SetLabels()
 	while #self.usedStrings > 0 do
 		local l = tremove(self.usedStrings)
 		l:Hide()
-		tinsert(self.stringPool, l)
+		tinsert(stringPool, l)
 	end
 	
 	local minutes = math_floor(self:GetTimeMax() / 60)
@@ -512,7 +514,7 @@ function barPrototype:UpdateLabel(label, store)
 end
 
 function barPrototype:SetBarFont()
-	for k, v in ipairs(self.stringPool) do
+	for k, v in ipairs(stringPool) do
 		self:UpdateLabel(v, self.settings.bar)
 	end
 	
@@ -566,7 +568,7 @@ function barPrototype:UpdateBarLook()
 end
 
 function barPrototype:UpdateIconLook()
-	for _, icon in ipairs(self.allFrames) do
+	for _, icon in ipairs(self.usedFrames) do
 		self:UpdateSingleIconLook(icon)
 	end
 end
@@ -574,6 +576,24 @@ end
 function barPrototype:UpdateLook()
 	self:UpdateBarLook()
 	self:UpdateIconLook()
+end
+
+function barPrototype:Expire()
+	self:SetScript("OnUpdate", nil)
+	
+	while #self.usedStrings > 0 do
+		local l = tremove(self.usedStrings)
+		l:Hide()
+		tinsert(stringPool, l)
+	end
+	
+	for _, frame in ipairs(self.usedFrames) do
+		if frame.finish:IsPlaying() then frame.finish:Stop() end
+		if frame.throb:IsPlaying() then frame.throb:Stop() end
+		if frame.pulse:IsPlaying() then frame.pulse:Stop() end	
+		frame:Expire(true)
+	end
+	self:Hide()
 end
 
 function barPrototype:CheckOverlap(current)
@@ -644,7 +664,7 @@ function cooldownPrototype:Expire(noanimate)
 	local parent = self.parent
 	for k, v in ipairs(parent.usedFrames) do
 		if v == self then
-			tinsert(parent.framePool, tremove(parent.usedFrames, k))
+			tinsert(framePool, tremove(parent.usedFrames, k))
 			break
 		end
 	end
@@ -653,7 +673,7 @@ function cooldownPrototype:Expire(noanimate)
 		parent:Deactivate()
 	end
 	
-	self.pulse:Stop()
+	if self.pulse:IsPlaying() then self.pulse:Stop() end
 	if noanimate then
 		self:Hide()
 	else
@@ -699,8 +719,9 @@ function cooldownPrototype:UpdateTime()
 		expire = true
 	end
 	
-	local barWidth = (parent.w - parent.h)
-	local base = parent.settings.time_compression
+	local w, h = parent.w or parent:GetWidth(), parent.h or parent:GetHeight()
+	local barWidth = (w - h)
+	local base = parent.settings.bar.time_compression
 	local pos = getPos(remaining, timeMax, base) * barWidth
 	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
 	

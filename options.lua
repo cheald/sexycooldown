@@ -11,8 +11,6 @@ mod.baseOptions = {
 
 mod.barDefaults = {
 	profile = {
-		time_max = 180,
-		time_compression = 0.3,
 		blacklist = {},
 		bar = {
 			font = "Fritz Quadrata TT",
@@ -28,6 +26,8 @@ mod.barDefaults = {
 			minDuration = 3,
 			maxDuration = 0,
 			inactiveAlpha = 1,
+			time_max = 180,
+			time_compression = 0.3,
 			x = 0,
 			y = -300			
 		},
@@ -467,9 +467,9 @@ function mod:GetOptionsTable(frame)
 		arg = frame,
 		get = function(info)
 			local obj = db
-			for i = 2, #info do
+			for i = 3, #info do
 				obj = obj[info[i]]
-			end
+			end			
 			if type(obj) == "table" then
 				return obj.r, obj.g, obj.b, obj.a
 			else
@@ -478,7 +478,7 @@ function mod:GetOptionsTable(frame)
 		end,
 		set = function(info, ...)
 			local obj = db
-			for i = 2, #info - 1 do
+			for i = 3, #info - 1 do
 				obj = obj[info[i]]
 			end
 			if select("#", ...) == 1 then
