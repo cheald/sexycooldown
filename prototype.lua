@@ -699,9 +699,9 @@ function cooldownPrototype:UpdateTime()
 	local text
 	if iRemaining ~= self.lastRemaining or iRemaining < 10 then
 		parent:CheckOverlap(self)
-		if remaining > 60 then
-			local minutes = math_floor(remaining / 60)
-			local seconds = math_fmod(remaining, 60)
+		if iRemaining >= 60 then
+			local minutes = math_floor(iRemaining / 60)
+			local seconds = math_fmod(iRemaining, 60)
 			text = string_format("%2.0f:%02.0f", minutes, seconds)
 		elseif remaining <= 10 then
 			text = string_format("%2.1f", remaining)

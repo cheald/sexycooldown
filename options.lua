@@ -41,7 +41,7 @@ mod.barDefaults = {
 			time_compression = 0.3,
 			x = 0,
 			y = -300,
-			orientation = LEFT_TO_RIGHT			
+			orientation = "LEFT_TO_RIGHT"
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
