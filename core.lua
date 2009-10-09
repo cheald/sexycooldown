@@ -161,8 +161,8 @@ local GetSpellCooldown = _G.GetSpellCooldown
 do
 	function mod:BAG_UPDATE_COOLDOWN()
 		for i = 1, 18 do
-			local start, duration = GetInventoryItemCooldown("player", i)
-			if start > 0 and duration > 3 then
+			local start, duration, active = GetInventoryItemCooldown("player", i)
+			if active == 1 and start > 0 and duration > 3 then
 				local link = GetInventoryItemLink("player",i)
 				local id = link:match("item:(%d+)")
 				local name = GetItemInfo(id)
@@ -174,8 +174,8 @@ do
 		for i = 0, 4 do
 			local slots = GetContainerNumSlots(i)
 			for j = 1, slots do
-				local start, duration = GetContainerItemCooldown(i,j)
-				if start > 0 and duration > 3 then
+				local start, duration, active = GetContainerItemCooldown(i,j)
+				if active == 1 and start > 0 and duration > 3 then
 					local link = GetContainerItemLink(i,j)
 					if link then
 						local id = link:match("item:(%d+)")
@@ -257,5 +257,5 @@ end
 
 function mod:CacheSpells()
 	cacheSpellsForBook(spells.PLAYER, "BOOKTYPE_SPELL")
-	cacheSpellsForBook(spells.PLAYER, "BOOKTYPE_PET")
+	cacheSpellsForBook(spells.PET, "BOOKTYPE_PET")
 end

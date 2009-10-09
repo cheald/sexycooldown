@@ -415,6 +415,7 @@ do
 		f.duration = duration
 		self:SetMaxDuration()
 		f.lastOverlapCheck = 0
+		f:ClearAllPoints()
 		f:UpdateTime()
 		self:SetScript("OnUpdate", self.OnUpdate)		
 	end
