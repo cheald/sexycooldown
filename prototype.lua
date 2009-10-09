@@ -470,7 +470,11 @@ end
 
 function barPrototype:SetLabel(val)
 	local l = self:CreateLabel(self)
-	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self:GetLength() - self:GetDepth())
+	local depth = self:GetDepth() / 2
+	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self:GetLength() - depth)
+	if pos + l:GetWidth() > self:GetLength() then
+		pos = self:GetLength() - l:GetWidth()
+	end
 	if self:Vertical() then
 		l:SetPoint("CENTER", self, getAnchorSide(self), 0, pos * (self:Reversed() and -1 or 1))
 	else
@@ -738,7 +742,7 @@ function cooldownPrototype:UpdateTime()
 	end
 	
 	local w, h = parent:GetLength(), parent:GetDepth()
-	local barWidth = (w - h)
+	local barWidth = (w - (h / 2))
 	local base = parent.settings.bar.time_compression
 	local pos = getPos(remaining, timeMax, base) * barWidth
 	-- self:SetPoint("CENTER", parent, "LEFT", pos, 0)
