@@ -15,6 +15,7 @@ local dummyFrame = CreateFrame("Frame")
 local cooldownPrototype = setmetatable({}, {__index = dummyFrame})
 local cooldownMeta = {__index = cooldownPrototype}
 local barPrototype = setmetatable({}, {__index = dummyFrame})
+
 mod.barMeta = {__index = barPrototype}
 
 barPrototype.framePool = {}
@@ -44,7 +45,7 @@ mod.bench, mod.report = bench, report
 ------------------------------------------------------
 
 function barPrototype:Init()
-	self:SetFrameStrata("MEDIUM")
+	self:SetFrameStrata("LOW")
 	self.settings = self.db.profile
 	self.usedFrames = {}
 	self.cooldowns = {}
@@ -127,7 +128,61 @@ function barPrototype:Init()
 		self.parent:SetAlpha(new)
 	end)	
 	
+	
+	local backdrop = {
+		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+		insets = {left = 2, top = 2, right = 2, bottom = 2},
+		edgeSize = 8,
+		tile = false		
+	}		
+	
+	-- Anchor to control where icon ready splashes appear
+	self.splashAnchor = CreateFrame("Frame", nil, UIParent)
+	
+	self.splashAnchor:SetBackdrop(backdrop)
+	self.splashAnchor:SetBackdropColor(0, 1, 0, 1)
+	if self.settings.bar.splash_x then
+		self.splashAnchor:SetPoint("CENTER", UIParent, "BOTTOMLEFT", self.settings.bar.splash_x, self.settings.bar.splash_y)
+	else
+		self.splashAnchor:SetPoint("CENTER", self, "LEFT")
+	end
+	self.splashAnchor:SetWidth(35)
+	self.splashAnchor:SetHeight(35)
+	self.splashAnchor:EnableMouse(true)	
+	self.splashAnchor:SetMovable(true)	
+	self.splashAnchor:SetScript("OnMouseDown", function(self)
+		self:StartMoving()
+	end)
+	self.splashAnchor:SetScript("OnMouseUp", function(mover)
+		mover:StopMovingOrSizing()
+		self.settings.bar.splash_x, self.settings.bar.splash_y = mover:GetCenter()
+	end)
+	local close = CreateFrame("Button", nil, self.splashAnchor, "UIPanelCloseButton")
+	close:SetWidth(14)
+	close:SetHeight(14)
+	close:SetPoint("TOPRIGHT", self.splashAnchor, "TOPRIGHT", -1, -1)
+	close:SetScript("OnClick", function(self)
+		self:GetParent():lock(true)
+	end)
+	self.splashAnchor.close = close;
+	
+	self.splashAnchor.lock = function(self, lock)
+		if lock then
+			self.close:Hide()
+			self:SetBackdropColor(0,0,0,0)
+		else
+			self.close:Show()
+			self:SetBackdropColor(0,1,0,1)
+		end
+	end
+	self.splashAnchor:lock(true)
+	
 	self:UpdateBarLook()
+	
+	-- Preload a few cooldowns, and fix that weird-ass scaling animation bug
+	for i = 1, 5 do
+		self:CreateNewCooldownFrame()
+	end
 end
 
 do
@@ -177,9 +232,10 @@ do
 			icon.overlay.fs:Hide()
 		end
 		
-		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
+		icon.finishScale.maxScale = self.settings.icon.splashScale
+		-- icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
 		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
-		icon.animationOpacity:SetDuration(self.settings.icon.splashSpeed)
+		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed)
 		
 		if self.settings.icon.disableTooltip then
 			icon:EnableMouse(false)
@@ -216,6 +272,94 @@ do
 		end
 	end
 	
+	function barPrototype:CreateNewCooldownFrame()
+		local f = setmetatable(CreateFrame("Frame"), cooldownMeta)
+		f:SetScript("OnMouseUp", onClick)
+		
+		f.tex = f:CreateTexture(nil, "ARTWORK")
+
+		f.overlay = CreateFrame("Frame", nil, f)
+		f.overlay:SetAllPoints()
+		f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
+		
+		f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
+		f.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
+		
+		f.overlay.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
+		f.overlay.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
+		
+		f:SetScript("OnEnter", f.ShowTooltip)
+		f:SetScript("OnLeave", f.HideTooltip)
+		f:EnableMouse(true)
+		
+		f.finish = f:CreateAnimationGroup()
+		f.finishScale = f.finish:CreateAnimation()
+		f.finishScale.maxScale = 4
+		f.finishAlpha = f.finish:CreateAnimation("Alpha")
+		f.finishAlpha:SetChange(-1)
+		
+		f.finishScale:SetScript("OnUpdate", function(self)
+			local scale = 1 + ((self.maxScale - 1) * self:GetProgress())
+			f:SetScale(scale)
+		end)		
+		f.finish:SetScript("OnPlay", function()
+			f:SetParent(UIParent)
+			if f.parent.settings.bar.splash_x then
+				f:SetParent(self.splashAnchor)
+				f:ClearAllPoints()
+				f:SetPoint("CENTER", self.splashAnchor, "CENTER")
+				f:EnableMouse(false)
+			end
+			f.overlay:Hide()
+			f.fs:Hide()
+		end)
+		f.finish:SetScript("OnFinished", function()
+			f:SetScale(1)
+			if not self.settings.icon.disableTooltip then
+				f:EnableMouse(true)
+			end
+			f:Hide()
+			f:SetParent(self)
+			f.fs:Show()
+			f.overlay:Show()
+		end)
+		f.finish:SetScript("OnStop", f.finish:GetScript("OnFinished"))
+		
+		f.pulse = f.overlay:CreateAnimationGroup()
+		f.pulse:SetLooping("BOUNCE")
+		f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
+		f.pulseAlpha:SetMaxFramerate(30)
+		f.pulseAlpha:SetChange(-1)
+		f.pulseAlpha:SetDuration(0.4)
+		f.pulseAlpha:SetEndDelay(0.4)
+		f.pulseAlpha:SetStartDelay(0.4)
+		
+		f.throb = f:CreateAnimationGroup()
+		-- f.throb:SetLooping("BOUNCE")
+		f.throbUp = f.throb:CreateAnimation("Scale")
+		f.throbUp:SetScale(2, 2)
+		f.throbUp:SetDuration(0.025)
+		f.throbUp:SetEndDelay(0.25)
+		
+		f.throb:SetScript("OnPlay", function()
+			f.overlay:Hide()
+			f.origFrameLevel = f.origFrameLevel or f:GetFrameLevel()
+			f:SetFrameLevel(128)
+		end)
+		f.throb:SetScript("OnStop", function()
+			f.overlay:Show()
+			if f.origFrameLevel then
+				f:SetFrameLevel(f.origFrameLevel)
+				f.origFrameLevel = nil
+			end
+		end)
+		f.throb:SetScript("OnFinished", f.throb:GetScript("OnStop"))
+		
+		tinsert(self.allFrames, f)
+		tinsert(self.framePool, f)
+		return f
+	end
+	
 	function barPrototype:CreateCooldown(name, typ, id, startTime, duration, icon)
 		if not duration then
 			error((":CreateCooldown requires a numeric duration, %s %s %s"):format(tostring(name), tostring(typ), tostring(id)))
@@ -230,79 +374,17 @@ do
 		if not f then
 			f = tremove(self.framePool)
 			if not f then
-				f = setmetatable(CreateFrame("Frame"), cooldownMeta)
-				f:SetScript("OnMouseUp", onClick)
-				
-				f.tex = f:CreateTexture(nil, "ARTWORK")
-
-				f.overlay = CreateFrame("Frame", nil, f)
-				f.overlay:SetAllPoints()
-				f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
-				
-				f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
-				f.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
-				
-				f.overlay.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
-				f.overlay.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
-				
-				f:SetScript("OnEnter", f.ShowTooltip)
-				f:SetScript("OnLeave", f.HideTooltip)
-				f:EnableMouse(true)
-				
-				f.finish = f:CreateAnimationGroup()
-				f.finish:SetScript("OnPlay", function(self)
-					f.overlay:Hide()
-					f.fs:Hide()
-				end)
-				f.finish:SetScript("OnFinished", function(self)
-					f:Hide()
-					f.fs:Show()
-					f.overlay:Show()
-				end)
-				f.finishScale = f.finish:CreateAnimation("Scale")				
-				
-				f.animationOpacity = f.finish:CreateAnimation("Alpha")
-				f.animationOpacity:SetChange(-1)				
-				
-				f.pulse = f.overlay:CreateAnimationGroup()
-				f.pulse:SetLooping("BOUNCE")
-				f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
-				f.pulseAlpha:SetMaxFramerate(30)
-				f.pulseAlpha:SetChange(-1)
-				f.pulseAlpha:SetDuration(0.4)
-				f.pulseAlpha:SetEndDelay(0.4)
-				f.pulseAlpha:SetStartDelay(0.4)
-				
-				f.throb = f:CreateAnimationGroup()
-				-- f.throb:SetLooping("BOUNCE")
-				f.throbUp = f.throb:CreateAnimation("Scale")
-				f.throbUp:SetScale(2, 2)
-				f.throbUp:SetDuration(0.025)
-				f.throbUp:SetEndDelay(0.25)
-				
-				f.throb:SetScript("OnPlay", function(self)
-					f.overlay:Hide()
-					f.origFrameLevel = f.origFrameLevel or f:GetFrameLevel()
-					f:SetFrameLevel(128)
-				end)
-				f.throb:SetScript("OnStop", function(self)
-					f.overlay:Show()
-					if f.origFrameLevel then
-						f:SetFrameLevel(f.origFrameLevel)
-						f.origFrameLevel = nil
-					end
-				end)
-				f.throb:SetScript("OnFinished", f.throb:GetScript("OnStop"))
-				
-				tinsert(self.allFrames, f)
+				self:CreateNewCooldownFrame()
+				f = tremove(self.framePool)
 			end
 			
 			f.name = name
 			f.icon = icon
 			
-			f.finish:Stop()
-			f.throb:Stop()
-			f.pulse:Stop()
+			if f.finish:IsPlaying() then f.finish:Stop() end
+			if f.throb:IsPlaying() then f.throb:Stop() end
+			if f.pulse:IsPlaying() then f.pulse:Stop() end
+			
 			f.overlay:Show()
 			f:SetAlpha(1)	
 			f.overlay:SetAlpha(1)			
@@ -609,16 +691,21 @@ function cooldownPrototype:UpdateTime()
 	if remaining > timeMax then
 		remaining = timeMax
 	end
+
+	local expire = false
 	if remaining <= 0 then
 		remaining = 0.00001
-		self:Expire()
+		expire = true
 	end
 	
 	local barWidth = (parent.w - parent.h)
 	local base = parent.settings.time_compression
 	local pos = getPos(remaining, timeMax, base) * barWidth
 	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
-	-- print(self.name, self.overlay:GetFrameLevel())
+	
+	if expire then
+		self:Expire()		
+	end
 end
 
 function cooldownPrototype:Blacklist()

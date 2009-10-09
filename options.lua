@@ -199,9 +199,9 @@ function mod:GetOptionsTable(frame)
 					name = L["Splash scale"],
 					desc = L["How big (or small) icons will 'splash' when their cooldown is done"],
 					min = 0,
-					max = 15,
+					max = 50,
 					step = 0.25,
-					bigStep = 0.25,
+					bigStep = 1,
 					order = 15
 				},
 				splashSpeed = {
@@ -209,7 +209,7 @@ function mod:GetOptionsTable(frame)
 					name = L["Splash speed"],
 					desc = L["How quickly to play the splash animation once a cooldown is done"],
 					min = 0.05,
-					max = 1.0,
+					max = 3.0,
 					step = 0.05,
 					bigStep = 0.05,
 					order = 16
@@ -433,7 +433,30 @@ function mod:GetOptionsTable(frame)
 					step = 0.01,
 					bigStep = 0.05,
 					isPercent = true
-				},				
+				},
+				showSplash = {
+					type = "execute",
+					name = L["Show Splash Anchor"],
+					desc = L["Show an anchor that you can use to move the splash anchor, which controls where icons 'splash' when they are cooled down."],
+					func = function()
+						frame.splashAnchor:lock(false)
+					end,
+					order = 600,
+					hidden = showAdvanced
+				},
+				resetSplash = {
+					type = "execute",
+					name = L["Reset Splash Anchor"],
+					desc = L["Reset splash anchor to its default position."],
+					func = function()
+						db.bar.splash_x = nil
+						db.bar.splash_y = nil
+						frame.splashAnchor:ClearAllPoints()
+						frame.splashAnchor:SetPoint("CENTER", frame, "LEFT")
+					end,
+					order = 601,
+					hidden = showAdvanced
+				}
 			}
 		}
 	}

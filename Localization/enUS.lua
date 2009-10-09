@@ -68,6 +68,10 @@ L["Vertical Offset"] = true
 L["Vertical offset from screen center"] = true
 L["Inactive Opacity"] = true
 L["Opacity to set the bar to when a cooldown is not active"] = true
+L["Show Splash Anchor"] = true
+L["Show an anchor that you can use to move the splash anchor, which controls where icons 'splash' when they are cooled down."] = true
+L["Reset Splash Anchor"] = true
+L["Reset splash anchor to its default position."] = true
 
 -- ./prototype.lua
 -- no localization
