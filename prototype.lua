@@ -50,12 +50,18 @@ function barPrototype:Init()
 			self:StartMoving()
 		end
 	end)
-	self:SetScript("OnMouseUp", function(self)
+	self:SetScript("OnMouseUp", function(self, button)
 		self:StopMovingOrSizing()
 		local x, y = self:GetCenter()
 		local ox, oy = UIParent:GetCenter()
-		self.settings.bar.x = x - ox
-		self.settings.bar.y = y - oy
+		local nx, ny = x - ox, y - oy
+		local xdiff, ydiff = math.abs(nx - self.settings.bar.x), math.abs(ny - self.settings.bar.y)
+		if xdiff > 1 or ydiff > 1 then
+			self.settings.bar.x = nx
+			self.settings.bar.y = ny
+		elseif button == "RightButton" then
+			self:OpenConfig()
+		end
 	end)
 	self:SetScript("OnSizeChanged", function()
 		self.settings.bar.width = self:GetLength()
@@ -167,6 +173,10 @@ function barPrototype:Init()
 	self:UpdateBarLook()
 end
 
+function barPrototype:OpenConfig()
+	mod:Config()
+end
+
 function barPrototype:Vertical()
 	local vert = (self.settings.bar.orientation == "BOTTOM_TO_TOP" or self.settings.bar.orientation == "TOP_TO_BOTTOM")
 	return vert
@@ -231,10 +241,10 @@ do
 			icon.overlay.fs:Hide()
 		end
 		
-		icon.finishScale.maxScale = self.settings.icon.splashScale
-		-- icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
+		-- icon.finishScale.maxScale = self.settings.icon.splashScale
+		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
 		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
-		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed)
+		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed * 1.2)
 		
 		if self.settings.icon.disableTooltip then
 			icon:EnableMouse(false)
@@ -292,28 +302,22 @@ do
 		f:EnableMouse(true)
 		
 		f.finish = f:CreateAnimationGroup()
-		f.finishScale = f.finish:CreateAnimation()
-		f.finishScale.maxScale = 4
 		f.finishAlpha = f.finish:CreateAnimation("Alpha")
 		f.finishAlpha:SetChange(-1)
 		
-		f.finishScale:SetScript("OnUpdate", function(self)
-			local scale = 1 + ((self.maxScale - 1) * self:GetProgress())
-			f:SetScale(scale)
-		end)		
+		f.finishScale = f.finish:CreateAnimation("Scale")		
 		f.finish:SetScript("OnPlay", function()
 			f:SetParent(UIParent)
 			if f.parent.settings.bar.splash_x then
 				f:SetParent(self.splashAnchor)
 				f:ClearAllPoints()
-				f:SetPoint("CENTER", self.splashAnchor, "CENTER")
+				f:SetPoint("CENTER")
 				f:EnableMouse(false)
 			end
 			f.overlay:Hide()
 			f.fs:Hide()
 		end)
 		f.finish:SetScript("OnFinished", function()
-			f:SetScale(1)
 			if not self.settings.icon.disableTooltip then
 				f:EnableMouse(true)
 			end
@@ -333,12 +337,18 @@ do
 		f.pulseAlpha:SetEndDelay(0.4)
 		f.pulseAlpha:SetStartDelay(0.4)
 		
+		local throbScale = 1.6
 		f.throb = f:CreateAnimationGroup()
-		-- f.throb:SetLooping("BOUNCE")
-		f.throbUp = f.throb:CreateAnimation("Scale")
-		f.throbUp:SetScale(2, 2)
-		f.throbUp:SetDuration(0.025)
-		f.throbUp:SetEndDelay(0.25)
+		f.throb[1] = f.throb:CreateAnimation("Scale")
+		f.throb[1]:SetScale(throbScale, throbScale)
+		f.throb[1]:SetDuration(0.025)
+		f.throb[1]:SetEndDelay(0.2)
+		f.throb[1]:SetOrder(1)
+
+		f.throb[2] = f.throb:CreateAnimation("Scale")
+		f.throb[2]:SetScale(1 / throbScale, 1 / throbScale)
+		f.throb[2]:SetDuration(0.02)
+		f.throb[2]:SetOrder(2)
 		
 		f.throb:SetScript("OnPlay", function()
 			f.overlay:Hide()

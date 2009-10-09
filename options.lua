@@ -253,13 +253,20 @@ function mod:GetOptionsTable(frame)
 					name = L["Flexible"],
 					desc = L["Collapse the bar to the length of your longest active cooldown."]				,
 					order = 3
-				},				
+				},
 				advancedOptions = {
 					type = "toggle",
 					name = L["Advanced Options"],
 					desc = L["Enable advanced configuration options"],
 					order = 3,
 				},
+				orientation = {
+					name = L["Bar Orientation"],
+					desc = L["Bar and icon direction."],
+					type = "select",
+					values = orientations,
+					order = 4
+				},							
 				timeHeader = {
 					type = "header",
 					name = L["Time and Duration settings"],
@@ -468,13 +475,7 @@ function mod:GetOptionsTable(frame)
 					end,
 					order = 601,
 					hidden = showAdvanced
-				},
-				orientation = {
-					name = L["Bar Orientation"],
-					desc = L["Bar and icon direction."],
-					type = "select",
-					values = orientations
-				},				
+				},	
 			}
 		}
 	}

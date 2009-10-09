@@ -23,6 +23,7 @@ local options = {
 		defaultArgs = {
 			type = "group",
 			name = "Default Args",
+			guiHidden = true,
 			args = {
 				instructions = {
 					type = "description",
@@ -59,6 +60,7 @@ local function deepcopy(from)
 end
 
 local lastPlayerSpell, lastPetSpell = {}, {}
+local configFrame
 
 function mod:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("SexyCooldownDB", defaults)
@@ -67,7 +69,7 @@ function mod:OnInitialize()
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SexyCooldown", options)
 	
 	ACD3:AddToBlizOptions("SexyCooldown", nil, nil, "defaultArgs")
-	ACD3:AddToBlizOptions("SexyCooldown", L["Bars"], "SexyCooldown", "bars")
+	configFrame = ACD3:AddToBlizOptions("SexyCooldown", L["Bars"], "SexyCooldown", "bars")
 	ACD3:AddToBlizOptions("SexyCooldown", L["Profiles"], "SexyCooldown", "profiles")
 	
 	self:Setup()
