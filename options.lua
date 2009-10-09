@@ -2,7 +2,18 @@ local mod = SexyCooldown
 local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 local LSM = LibStub("LibSharedMedia-3.0")
 
-local outlines = {[""] = "None", ["OUTLINE"] = "Outline", ["THICKOUTLINE"] = "Thick Outline"}
+local outlines = {
+	[""] = L["No outline"], 
+	["OUTLINE"] = L["Outline"], 
+	["THICKOUTLINE"] = L["Thick Outline"]
+}
+
+local orientations = {
+	LEFT_TO_RIGHT = L["Left to Right"],
+	RIGHT_TO_LEFT = L["Right to Left"],
+	TOP_TO_BOTTOM = L["Top to Bottom"],
+	BOTTOM_TO_TOP = L["Bottom to top"]
+}
 
 mod.baseOptions = {
 	type = "group",
@@ -29,7 +40,8 @@ mod.barDefaults = {
 			time_max = 180,
 			time_compression = 0.3,
 			x = 0,
-			y = -300			
+			y = -300,
+			orientation = LEFT_TO_RIGHT			
 		},
 		icon = {
 			font = "Fritz Quadrata TT",
@@ -456,7 +468,13 @@ function mod:GetOptionsTable(frame)
 					end,
 					order = 601,
 					hidden = showAdvanced
-				}
+				},
+				orientation = {
+					name = L["Bar Orientation"],
+					desc = L["Bar and icon direction."],
+					type = "select",
+					values = orientations
+				},				
 			}
 		}
 	}

@@ -21,30 +21,19 @@ mod.barMeta = {__index = barPrototype}
 local framePool = {}
 local stringPool = {}
 
-local totals = {}
-local loops = {}
-local function bench(key, action)
-	local t = GetTime()
-	totals[key] = totals[key] or 0
-	if action == "start" then
-		loops[key] = t
-	else
-		totals[key] = totals[key] + (t - loops[key])
-	end
+local function getAnchorSide(self)
+	local o = self.settings.bar.orientation
+	return 	o == "LEFT_TO_RIGHT" and "LEFT" or
+			o == "RIGHT_TO_LEFT" and "RIGHT" or
+			o == "BOTTOM_TO_TOP" and "TOP" or
+			o == "TOP_TO_BOTTOM" and "BOTTOM"
 end
-
-local function report()
-	for k, v in pairs(totals) do
-		print(k, ":", v)
-	end
-end
-mod.bench, mod.report = bench, report
 
 ------------------------------------------------------
 -- Bar prototype
 ------------------------------------------------------
 
-function barPrototype:Init()
+function barPrototype:Init()	
 	self:SetFrameStrata("LOW")
 	self.settings = self.db.profile
 	self.usedFrames = {}
@@ -68,13 +57,11 @@ function barPrototype:Init()
 		self.settings.bar.x = x - ox
 		self.settings.bar.y = y - oy
 	end)
-	self:SetScript("OnSizeChanged", function()
-		self.settings.bar.width = self:GetWidth()
-		self.settings.bar.height = self:GetHeight()
-		self.w = self.settings.bar.width
-		self.h = self.settings.bar.height
-		self:UpdateLook()
-	end)
+	-- self:SetScript("OnSizeChanged", function()
+		-- self.settings.bar.width = self:GetLength()
+		-- self.settings.bar.height = self:GetDepth()
+		-- self:UpdateLook()
+	-- end)
 	self:EnableMouse(true)
 	self:SetMovable(true)
 	self:SetResizable(true)
@@ -97,8 +84,8 @@ function barPrototype:Init()
 	end)
 	grip:SetScript("OnMouseUp", function(self)
 		self:GetParent():StopMovingOrSizing()
-		self:GetParent().settings.bar.width = self:GetParent():GetWidth()
-		self:GetParent().settings.bar.height = self:GetParent():GetHeight()
+		self:GetParent().settings.bar.width = self:GetParent():GetLength()
+		self:GetParent().settings.bar.height = self:GetParent():GetDepth()
 	end)
 
 	grip:ClearAllPoints()
@@ -144,7 +131,7 @@ function barPrototype:Init()
 	if self.settings.bar.splash_x then
 		self.splashAnchor:SetPoint("CENTER", UIParent, "BOTTOMLEFT", self.settings.bar.splash_x, self.settings.bar.splash_y)
 	else
-		self.splashAnchor:SetPoint("CENTER", self, "LEFT")
+		self.splashAnchor:SetPoint("CENTER", self, getAnchorSide(self))
 	end
 	self.splashAnchor:SetWidth(35)
 	self.splashAnchor:SetHeight(35)
@@ -178,11 +165,23 @@ function barPrototype:Init()
 	self.splashAnchor:lock(true)
 	
 	self:UpdateBarLook()
-	
-	-- Preload a few cooldowns, and fix that weird-ass scaling animation bug
-	-- for i = 1, 5 do
-		-- self:CreateNewCooldownFrame()
-	-- end
+end
+
+function barPrototype:Vertical()
+	local vert = (self.settings.bar.orientation == "BOTTOM_TO_TOP" or self.settings.bar.orientation == "TOP_TO_BOTTOM")
+	return vert
+end
+
+function barPrototype:Reversed()
+	return self.settings.bar.orientation == "RIGHT_TO_LEFT" or self.settings.bar.orientation == "BOTTOM_TO_TOP"
+end
+
+function barPrototype:GetLength()
+	return self:Vertical() and self:GetHeight() or self:GetWidth()
+end
+
+function barPrototype:GetDepth()
+	return self:Vertical() and self:GetWidth() or self:GetHeight()
 end
 
 do
@@ -221,8 +220,8 @@ do
 		
 		self:UpdateLabel(icon.fs, self.settings.icon)
 		self:UpdateLabel(icon.overlay.fs, self.settings.icon)
-		icon:SetWidth(self:GetHeight() + self.settings.icon.sizeOffset)
-		icon:SetHeight(self:GetHeight() + self.settings.icon.sizeOffset)		
+		icon:SetWidth(self:GetDepth() + self.settings.icon.sizeOffset)
+		icon:SetHeight(self:GetDepth() + self.settings.icon.sizeOffset)		
 		
 		if self.settings.icon.showText then
 			icon.fs:Show()
@@ -461,8 +460,12 @@ end
 
 function barPrototype:SetLabel(val)
 	local l = self:CreateLabel(self)
-	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self.settings.bar.width - self.settings.bar.height)
-	l:SetPoint("CENTER", self, "LEFT", pos, 0)
+	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self:GetLength() - self:GetDepth())
+	if self:Vertical() then
+		l:SetPoint("CENTER", self, getAnchorSide(self), 0, pos * (self:Reversed() and -1 or 1))
+	else
+		l:SetPoint("CENTER", self, getAnchorSide(self), pos * (self:Reversed() and -1 or 1), 0)
+	end
 	if val > 3600 then
 		val = ("%2.0fh"):format(val / 3600)
 	elseif val >= 60 then
@@ -549,8 +552,13 @@ end
 
 function barPrototype:UpdateBarLook()
 	self:SetPoint("CENTER", UIParent, "CENTER", self.settings.bar.x, self.settings.bar.y)
-	self:SetWidth(self.settings.bar.width)
-	self:SetHeight(self.settings.bar.height)
+	self:SetWidth(self:Vertical() and self.settings.bar.height or self.settings.bar.width)
+	self:SetHeight(self:Vertical() and self.settings.bar.width or self.settings.bar.height)
+	
+	if not self.settings.bar.splash_x then
+		self.splashAnchor:SetPoint("CENTER", self, getAnchorSide(self))
+	end
+	
 	self:SetLabels()
 	self:SetBarFont()
 	self:UpdateBarBackdrop()
@@ -719,11 +727,16 @@ function cooldownPrototype:UpdateTime()
 		expire = true
 	end
 	
-	local w, h = parent.w or parent:GetWidth(), parent.h or parent:GetHeight()
+	local w, h = parent:GetLength(), parent:GetDepth()
 	local barWidth = (w - h)
 	local base = parent.settings.bar.time_compression
 	local pos = getPos(remaining, timeMax, base) * barWidth
-	self:SetPoint("CENTER", parent, "LEFT", pos, 0)
+	-- self:SetPoint("CENTER", parent, "LEFT", pos, 0)
+	if parent:Vertical() then
+		self:SetPoint("CENTER", parent, getAnchorSide(parent), 0, pos * (parent:Reversed() and -1 or 1))
+	else
+		self:SetPoint("CENTER", parent, getAnchorSide(parent), pos * (parent:Reversed() and -1 or 1), 0)
+	end	
 	
 	if expire then
 		self:Expire()		

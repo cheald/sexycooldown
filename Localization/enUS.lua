@@ -14,6 +14,13 @@ L["Profiles"] = true
 -- no localization
 
 -- ./options.lua
+L["No outline"] = true
+L["Outline"] = true
+L["Thick Outline"] = true
+L["Left to Right"] = true
+L["Right to Left"] = true
+L["Top to Bottom"] = true
+L["Bottom to top"] = true
 L["Icons"] = true
 L["Right-click an icon on a cooldown bar to blacklist it and prevent it from showing in the future. To remove a cooldown from a blacklist, choose the cooldown to remove from this list."] = true
 L["Blacklist"] = true
@@ -74,6 +81,8 @@ L["Show Splash Anchor"] = true
 L["Show an anchor that you can use to move the splash anchor, which controls where icons 'splash' when they are cooled down."] = true
 L["Reset Splash Anchor"] = true
 L["Reset splash anchor to its default position."] = true
+L["Bar Orientation"] = true
+L["Bar and icon direction."] = true
 
 -- ./prototype.lua
 -- no localization
