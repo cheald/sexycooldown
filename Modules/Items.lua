@@ -50,7 +50,6 @@ function mod:Refresh()
 					local name, _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
 					local filter = LibICD:IsInternalItemCooldown(id) and "INTERNAL_ITEM_COOLDOWN" or "ITEM_COOLDOWN"				
 					local uid = "item:" .. id
-					print("Adding", name, filter)					
 					SexyCooldown:AddItem(uid, name, texture, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 				end
 			end

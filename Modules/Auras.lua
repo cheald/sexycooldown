@@ -6,7 +6,7 @@ function mod:OnInitialize()
 		L["Debuffs on me"],
 		L["Show the duration of debuffs on me on this bar"])
 	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
-		L["My debuffs"], 
+		L["My target debuffs"], 
 		L["Show the duration of my debuffs on my target on this bar"])
 	SexyCooldown.RegisterFilter(self, "MY_FOCUS_DEBUFFS", 
 		L["Focus debuffs"], 
