@@ -61,7 +61,8 @@ mod.barDefaults = {
 			PET_SPELL_COOLDOWN = true,
 			ITEM_COOLDOWN = true,
 			INTERNAL_SPELL_COOLDOWN = true,
-			INTERNAL_ITEM_COOLDOWN = true
+			INTERNAL_ITEM_COOLDOWN = true,
+			TOTEM_COOLDOWN = true
 		}		
 	}
 }
