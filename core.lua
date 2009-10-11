@@ -13,7 +13,6 @@ local GetSpellCooldown = _G.GetSpellCooldown
 local activeFilters = {}
 local defaults = {
 	profile = {
-		barSerial = 1,
 		bars = {}
 	}
 }
@@ -45,7 +44,7 @@ local options = {
 					name = L["Create new bar"],
 					func = function()
 						local bar = mod:CreateBar()
-						mod:ShowBarOptions(bar.name)
+						mod:ShowBarOptions(bar)
 					end,
 					order = 101
 				},
@@ -69,7 +68,10 @@ end
 local configFrame
 
 function mod:OnInitialize()
+	self:UpdateBarDB()
+	
 	self.db = LibStub("AceDB-3.0"):New("SexyCooldownDB", defaults)
+	self.db.global.dbVersion = 3
 	
 	options.args.profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("SexyCooldown", options)
@@ -81,17 +83,17 @@ function mod:OnInitialize()
 	self.bars = frames
 end
 
-function mod:Config(barName)
+function mod:Config(bar)
 	InterfaceOptionsFrame:Hide()
 	ACD3:SetDefaultSize("SexyCooldown", 680, 550)
 	ACD3:Open("SexyCooldown")
-	if barName then
-		ACD3:SelectGroup("SexyCooldown", "bars", barName)
+	if bar then
+		self:ShowBarOptions(bar)
 	end
 end
 
-function mod:ShowBarOptions(barName)
-	ACD3:SelectGroup("SexyCooldown", "bars", barName)
+function mod:ShowBarOptions(bar)
+	ACD3:SelectGroup("SexyCooldown", "bars", bar.optionsKey)
 end
 
 function mod:OnEnable()	
@@ -147,28 +149,88 @@ function mod:IsFilterRegistered(filter)
 	return activeFilters[filter] and activeFilters[filter] > 0
 end
 
-function mod:CreateBar(name, settings)
+-- For 0.6.2 to 0.6.3
+function mod:UpdateBarDB()
+	if not SexyCooldownDB.global or not SexyCooldownDB.global.dbVersion or SexyCooldownDB.global.dbVersion < 2 then
+		if SexyCooldownDB.namespaces then
+			for namespace, settings in pairs(SexyCooldownDB.namespaces) do
+				for profile, key in pairs(settings.profileKeys) do
+					local barSettings = settings.profiles[key]
+					if #SexyCooldownDB.profiles[key].bars == 0 then
+						SexyCooldownDB.profiles[key].bars = {}
+					end
+					tinsert(SexyCooldownDB.profiles[key].bars, barSettings)
+				end
+			end
+		end
+		for profile, settings in pairs(SexyCooldownDB.profiles) do
+			settings.barSerial = nil
+		end
+		SexyCooldownDB.namespaces = nil
+		SexyCooldownDB.global = SexyCooldownDB.global or {}
+		SexyCooldownDB.global.dbVersion = 2
+	end	
+end
+
+local function bindToMetaTable(target, source)
+	setmetatable(target, {__index = source})
+	for k, v in pairs(target) do
+		if type(v) == "table" and source[k] then
+			bindToMetaTable(v, source[k])
+		end
+	end
+end
+
+local barOptionsCount = 0
+function mod:CreateBar(settings, defaultName)
 	settings = settings or deepcopy(mod.barDefaults)
 	local frame = setmetatable(CreateFrame("Frame", nil, UIParent), self.barMeta)
+	local name = settings.bar.name or defaultName
 	if not name then
-		name = "Bar" .. self.db.profile.barSerial
-		self.db.profile.barSerial = self.db.profile.barSerial + 1
+		name = "Bar " .. (#self.db.profile.bars + 1)
+		settings.bar.name = name
 	end
-	frame.name = name
-	self.db.profile.bars[name] = true
-	frame.db = self.db:GetNamespace(name, true) or self.db:RegisterNamespace(name, mod.barDefaults)
-	options.args.bars.args[name] = self:GetOptionsTable(frame)
+	settings.bar.name = name
+	local existing = false
+	for k, v in ipairs(self.db.profile.bars) do
+		if v == settings then
+			frame.id = k
+			existing = true
+			break
+		end
+	end
+	if not existing then
+		tinsert(self.db.profile.bars, settings)
+		frame.id = #self.db.profile.bars
+	end	
+	bindToMetaTable(settings, mod.barDefaults)
+	frame.settings = settings
+	frame.optionsTable = self:GetOptionsTable(frame)
+	frame.optionsKey = "baroptions" .. barOptionsCount
+	options.args.bars.args[frame.optionsKey] = frame.optionsTable
+	barOptionsCount = barOptionsCount + 1
 	frame:Init()
 	tinsert(frames, frame)
 	return frame
 end
 
+function mod:UpdateFrameName(frame)
+	frame.optionsTable.name = frame.settings.bar.name
+	self:ShowBarOptions(frame)
+	ACD3:ConfigTableChanged(nil, "SexyCooldown")
+end
+
+-- FIXME
 function mod:DestroyBar(frame)
-	local name = frame.name
-	self.db.profile.bars[name] = nil
-	options.args.bars.args[name] = nil
-	for k, v in pairs(self.db.profile.bars) do
-		self:ShowBarOptions(k)
+	for k, v in ipairs(self.db.profile.bars) do
+		if frame.settings == v then
+			tremove(self.db.profile.bars, k)
+		end
+	end
+	options.args.bars.args[frame.optionsKey] = nil
+	
+	for k, v in ipairs(frames) do
+		self:ShowBarOptions(v)
 		break
 	end
 	ACD3:ConfigTableChanged(nil, "SexyCooldown")
@@ -176,12 +238,10 @@ function mod:DestroyBar(frame)
 end
 
 function mod:Setup()
-	local count = 0
-	for k, v in pairs(self.db.profile.bars) do
-		self:CreateBar(k, v)
-		count = count + 1
+	for k, v in ipairs(self.db.profile.bars) do
+		self:CreateBar(v, "Bar " .. k)
 	end
-	if count == 0 then
+	if #self.db.profile.bars == 0 then
 		self:CreateBar()
 	end
 end

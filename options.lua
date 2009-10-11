@@ -21,56 +21,54 @@ mod.baseOptions = {
 }
 
 mod.barDefaults = {
-	profile = {
-		blacklist = {},
-		bar = {
-			font = "Fritz Quadrata TT",
-			fontsize = 12,
-			texture = "Glaze",
-			border = "Blizzard Tooltip",
-			borderInset = 2,
-			borderColor = { r = 0.3019607843137255, g = 0.5215686274509804, b = 1, a = 1 },
-			backgroundColor = { r = 0.2, g = 0.2705882352941176, b = 0.6784313725490196, a = 1 },
-			fontColor = { r = 1, g = 1, b = 1, a = 1 },
-			width = 450,
-			height = 33,
-			minDuration = 3,
-			maxDuration = 0,
-			inactiveAlpha = 1,
-			time_max = 180,
-			time_compression = 0.3,
-			x = 0,
-			y = -300,
-			orientation = "LEFT_TO_RIGHT"
-		},
-		icon = {
-			font = "Fritz Quadrata TT",
-			fontsize = 10,
-			border = "Blizzard Tooltip",
-			borderColor = { r = 1, g = 1, b = 1, a = 1 },
-			fontColor = { r = 1, g = 1, b = 1, a = 1 },
-			sizeOffset = 4,
-			borderInset = 4,
-			showText = true,
-			splashScale = 4,
-			splashSpeed = 0.5,
-			borderSize = 13
-		},
-		events = {
-			SPELL_COOLDOWN = true,
-			PET_SPELL_COOLDOWN = true,
-			ITEM_COOLDOWN = true,
-			INTERNAL_SPELL_COOLDOWN = true,
-			INTERNAL_ITEM_COOLDOWN = true,
-			TOTEM_COOLDOWN = true
-		}		
+	blacklist = {},
+	bar = {
+		font = "Fritz Quadrata TT",
+		fontsize = 12,
+		texture = "Glaze",
+		border = "Blizzard Tooltip",
+		borderInset = 2,
+		borderColor = { r = 0.3019607843137255, g = 0.5215686274509804, b = 1, a = 1 },
+		backgroundColor = { r = 0.2, g = 0.2705882352941176, b = 0.6784313725490196, a = 1 },
+		fontColor = { r = 1, g = 1, b = 1, a = 1 },
+		width = 450,
+		height = 33,
+		minDuration = 3,
+		maxDuration = 0,
+		inactiveAlpha = 1,
+		time_max = 180,
+		time_compression = 0.3,
+		x = 0,
+		y = -300,
+		orientation = "LEFT_TO_RIGHT"
+	},
+	icon = {
+		font = "Fritz Quadrata TT",
+		fontsize = 10,
+		border = "Blizzard Tooltip",
+		borderColor = { r = 1, g = 1, b = 1, a = 1 },
+		fontColor = { r = 1, g = 1, b = 1, a = 1 },
+		sizeOffset = 4,
+		borderInset = 4,
+		showText = true,
+		splashScale = 4,
+		splashSpeed = 0.5,
+		borderSize = 13
+	},
+	events = {
+		SPELL_COOLDOWN = true,
+		PET_SPELL_COOLDOWN = true,
+		ITEM_COOLDOWN = true,
+		INTERNAL_SPELL_COOLDOWN = true,
+		INTERNAL_ITEM_COOLDOWN = true,
+		TOTEM_COOLDOWN = true
 	}
 }
 
 mod.eventArgs = {}
 
 function mod:GetOptionsTable(frame)
-	local db = frame.db.profile
+	local db = frame.settings
 	
 	local showAdvanced = function()
 		return db.bar.advancedOptions ~= true
@@ -251,6 +249,13 @@ function mod:GetOptionsTable(frame)
 					type = "header",
 					name = L["General Options"],
 					order = 1
+				},
+				name = {
+					type = "input",
+					name = L["Name"],
+					desc = L["A descriptive name for this bar"],
+					order = 2,
+					set = "setName"
 				},
 				lock = {
 					type = "toggle",
@@ -491,7 +496,7 @@ function mod:GetOptionsTable(frame)
 					name = L["/!\\ Delete This Bar /!\\"],
 					desc = L["Permanently delete this bar."],
 					func = function()
-						mod:DestroyBar(frame)						
+						mod:DestroyBar(frame)
 					end,
 					confirm = true,
 					confirmText = L["Are you sure you want to delete this bar?"],
@@ -547,9 +552,14 @@ function mod:GetOptionsTable(frame)
 		mod:Refresh(info[#info])
 	end
 	
+	handlers.setName = function(self, info, value)
+		handlers.set(info, value)
+		mod:UpdateFrameName(frame)
+	end
+	
 	return {
 		type = "group",
-		name = frame.name,
+		name = frame.settings.bar.name,
 		arg = frame,
 		handler = handlers,
 		get = handlers.get,

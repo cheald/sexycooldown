@@ -42,14 +42,17 @@ do
 	local tmp = {}
 	local existingBuffs = {}
 
-	local function check(unit, uidstr, filter, func, funcFilter)
+	local function check(unit, uidstr, filter, func, funcFilter, filterSource)
 		local buffs = existingBuffs[unit]
 		local name, rank, icon, count, debuffType, duration, expirationTime, source, index
 		index = 1
 		while true do
 			name, rank, icon, count, debuffType, duration, expirationTime, source = func(unit, index)
 			if not name then break end
-			if duration > 0 then
+			local filterValid = false
+			filterValid = filterSource == nil or filterValid == source
+			
+			if duration > 0 and filterValid then
 				local uid = unit .. uidstr .. name
 				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, filter, showBuffHyperlink, unit, index, funcFilter)
 				buffs[uid] = true
@@ -76,7 +79,7 @@ do
 		elseif unit == "target" then
 			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL")
 		elseif unit == "focus" then
-			check(unit, ":debuff:", "MY_FOCUS_DEBUFFS", UnitDebuff, "HARMFUL")
+			check(unit, ":debuff:", "MY_FOCUS_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		end
 		
 		for k, v in pairs(tmp) do

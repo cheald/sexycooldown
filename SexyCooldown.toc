@@ -2,7 +2,7 @@
 ## Title: SexyCooldown
 ## Notes: A sexy logarithmic cooldown bar
 ## Author: Antiarc
-## Version: 0.6
+## Version: 0.7
 ## SavedVariables: SexyCooldownDB
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibInternalCooldowns-1.0
 

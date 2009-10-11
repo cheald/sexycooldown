@@ -33,9 +33,8 @@ end
 -- Bar prototype
 ------------------------------------------------------
 
-function barPrototype:Init()	
+function barPrototype:Init()
 	self:SetFrameStrata("LOW")
-	self.settings = self.db.profile
 	self.usedFrames = {}
 	self.cooldowns = {}
 	self.durations = {}
@@ -49,7 +48,7 @@ function barPrototype:Init()
 	end
 	
 	self:SetScript("OnMouseDown", function(self)
-		if not self.db.profile.bar.lock then
+		if not self.settings.bar.lock then
 			self:StartMoving()
 		end
 	end)
@@ -179,7 +178,7 @@ function barPrototype:Init()
 end
 
 function barPrototype:OpenConfig()
-	mod:Config(self.name)
+	mod:Config(self)
 end
 
 function barPrototype:Vertical()
@@ -202,11 +201,12 @@ end
 do
 	local framelevelSerial = 10
 	local delta = 0
-	local throttle = 1 / 37
+	local throttle = 1 / 30
 	function barPrototype:OnUpdate(t)
-		delta = delta + t		
-		if delta < throttle then return end
-		delta = delta - throttle
+		self.updateDelta = self.updateDelta or 0
+		self.updateDelta = self.updateDelta + t		
+		if self.updateDelta < throttle then return end
+		self.updateDelta = self.updateDelta - throttle
 		for _, frame in ipairs(self.usedFrames) do		
 			frame:UpdateTime()
 		end
@@ -782,6 +782,6 @@ function cooldownPrototype:UpdateTime()
 end
 
 function cooldownPrototype:Blacklist()
-	self.parent.db.profile.blacklist[self.uid] = self.name
+	self.parent.settings.blacklist[self.uid] = self.name
 	self:Expire(true)
 end

@@ -21,7 +21,7 @@ function mod:InternalCooldowns_Proc(callback, itemID, spellID, start, duration)
 	local texture = select(10, GetItemInfo(itemID))
 	local name = GetItemInfo(itemID)
 	local uid = ("%s:%d"):format("spell", spellID)
-	SexyCooldown:AddItem(uid, name, texture, start, duration, "INTERNAL_ITEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. spellID)
+	SexyCooldown:AddItem(uid, name, texture, start, duration, "INTERNAL_ITEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "item:" .. itemID)
 end
 
 function mod:Refresh()
