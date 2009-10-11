@@ -667,8 +667,8 @@ function barPrototype:CheckOverlap(current)
 			local ir, il = icon[getLeft](icon), icon[getRight](icon)
 			if (ir >= l and ir <= r) or (il >= l and il <= r) then
 				local overlap = math.min(math.abs(ir - l), math.abs(il - r))
-				if overlap > 0 then
-					local frame = icon:GetFrameLevel() >= current:GetFrameLevel() and icon or current
+				if overlap >= 0 then				
+					local frame = icon:GetFrameLevel() > current:GetFrameLevel() and icon or current
 					if not frame.pulse:IsPlaying() then
 						frame.pulse:Play()
 					end

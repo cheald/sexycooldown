@@ -285,9 +285,9 @@ function mod:GetOptionsTable(frame)
 					type = "range",
 					name = L["Time Compression"],
 					desc = L["Time display scaling factor"],
-					min = 0.05,
+					min = 0.01,
 					max = 1.0,
-					step = 0.05,
+					step = 0.005,
 					bigStep = 0.05,
 					order = 21
 				},

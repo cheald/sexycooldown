@@ -15,11 +15,13 @@ end
 
 function mod:OnEnable()
 	self:RegisterBucketEvent("UNIT_AURA", 0.1, "UNIT_AURA")
+	self:RegisterEvent("PLAYER_TARGET_CHANGED", "Refresh")
 	self:Refresh()
 end
 
 function mod:Refresh()
 	self:UpdateUnit("player")
+	self:UpdateUnit("target")
 end
 
 local function showBuffHyperlink(frame, unit, id, filter)
