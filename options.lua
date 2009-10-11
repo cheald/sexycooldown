@@ -484,7 +484,19 @@ function mod:GetOptionsTable(frame)
 					end,
 					order = 601,
 					hidden = showAdvanced
-				},	
+				},
+				deleteBar = {
+					type = "execute",
+					name = L["/!\\ Delete This Bar /!\\"],
+					desc = L["Permanently delete this bar."],
+					func = function()
+						mod:DestroyBar(frame)						
+					end,
+					confirm = true,
+					confirmText = L["Are you sure you want to delete this bar?"],
+					order = 602,
+					hidden = showAdvanced
+				}
 			}
 		},
 		events = {

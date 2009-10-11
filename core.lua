@@ -114,7 +114,7 @@ end
 
 local filterToMod = {}
 function mod.RegisterFilter(module, filter, name, description)
-	filterToMod[filter] = module:GetName()
+	filterToMod[filter] = module
 	local modname = module:GetName():gsub(" ", "_")
 	mod.eventArgs[modname] = mod.eventArgs[modname] or {
 		type = "group",
@@ -161,6 +161,18 @@ function mod:CreateBar(name, settings)
 	frame:Init()
 	tinsert(frames, frame)
 	return frame
+end
+
+function mod:DestroyBar(frame)
+	local name = frame.name
+	self.db.profile.bars[name] = nil
+	options.args.bars.args[name] = nil
+	for k, v in pairs(self.db.profile.bars) do
+		self:ShowBarOptions(k)
+		break
+	end
+	ACD3:ConfigTableChanged(nil, "SexyCooldown")
+	frame:Expire()
 end
 
 function mod:Setup()

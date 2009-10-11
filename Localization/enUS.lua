@@ -18,6 +18,8 @@ L["Debuffs on me"] = true
 L["Show the duration of debuffs on me on this bar"] = true
 L["My debuffs"] = true
 L["Show the duration of my debuffs on my target on this bar"] = true
+L["Focus debuffs"] = true
+L["Show the duration of my debuffs on my focus on this bar"] = true
 L["Buffs on me"] = true
 L["Show the duration of buffs on me on this bar"] = true
 
@@ -33,6 +35,10 @@ L["Show my spell cooldowns on this bar"] = true
 L["Pet spells"] = true
 L["Show my pet's cooldowns on this bar"] = true
 L["Show internal cooldowns for my spells and talents on this bar."] = true
+
+-- ./Modules/Totems.lua
+L["Totem durations"] = true
+L["Show my totem durations on this bar"] = true
 
 -- ./options.lua
 L["No outline"] = true
@@ -104,6 +110,9 @@ L["Show Splash Anchor"] = true
 L["Show an anchor that you can use to move the splash anchor, which controls where icons 'splash' when they are cooled down."] = true
 L["Reset Splash Anchor"] = true
 L["Reset splash anchor to its default position."] = true
+L["/!\\ Delete This Bar /!\\"] = true
+L["Permanently delete this bar."] = true
+L["Are you sure you want to delete this bar?"] = true
 L["Event Types"] = true
 
 -- ./prototype.lua

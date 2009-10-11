@@ -8,6 +8,9 @@ function mod:OnInitialize()
 	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
 		L["My debuffs"], 
 		L["Show the duration of my debuffs on my target on this bar"])
+	SexyCooldown.RegisterFilter(self, "MY_FOCUS_DEBUFFS", 
+		L["Focus debuffs"], 
+		L["Show the duration of my debuffs on my focus on this bar"])
 	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
 		L["Buffs on me"], 
 		L["Show the duration of buffs on me on this bar"])
@@ -22,6 +25,7 @@ end
 function mod:Refresh()
 	self:UpdateUnit("player")
 	self:UpdateUnit("target")
+	self:UpdateUnit("focus")
 end
 
 local function showBuffHyperlink(frame, unit, id, filter)
@@ -34,61 +38,49 @@ function mod:UNIT_AURA(units)
 	end
 end
 
-local tmp = {}
-local existingBuffs = {}
-function mod:UpdateUnit(unit)
+do
+	local tmp = {}
+	local existingBuffs = {}
 
-	wipe(tmp)
-	existingBuffs[unit] = existingBuffs[unit] or {}	
-	local buffs = existingBuffs[unit]
-	for k, v in pairs(buffs) do
-		tmp[k] = v
-	end
-	wipe(buffs)
-	
-	local name, rank, icon, count, debuffType, duration, expirationTime, source, index
-	if unit == "player" then
+	local function check(unit, uidstr, filter, func, funcFilter)
+		local buffs = existingBuffs[unit]
+		local name, rank, icon, count, debuffType, duration, expirationTime, source, index
 		index = 1
 		while true do
-			name, rank, icon, count, debuffType, duration, expirationTime, source = UnitBuff(unit, index)
+			name, rank, icon, count, debuffType, duration, expirationTime, source = func(unit, index)
 			if not name then break end
 			if duration > 0 then
-				local uid = unit .. ":buff:" .. name
-				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, "BUFFS_ON_ME", showBuffHyperlink, unit, index, "HELPFUL")
+				local uid = unit .. uidstr .. name
+				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, filter, showBuffHyperlink, unit, index, funcFilter)
 				buffs[uid] = true
 				tmp[uid] = nil
 			end
 			index = index + 1			
+		end
+	end
+
+	function mod:UpdateUnit(unit)
+
+		wipe(tmp)
+		existingBuffs[unit] = existingBuffs[unit] or {}	
+		local buffs = existingBuffs[unit]
+		for k, v in pairs(buffs) do
+			tmp[k] = v
+		end
+		wipe(buffs)
+		
+		local name, rank, icon, count, debuffType, duration, expirationTime, source, index
+		if unit == "player" then
+			check(unit, ":buff:", "BUFFS_ON_ME", UnitBuff, "HELPFUL")
+			check(unit, ":debuff:", "DEBUFFS_ON_ME", UnitDebuff, "HARMFUL")
+		elseif unit == "target" then
+			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL")
+		elseif unit == "focus" then
+			check(unit, ":debuff:", "MY_FOCUS_DEBUFFS", UnitDebuff, "HARMFUL")
 		end
 		
-		index = 1
-		while true do
-			name, rank, icon, count, debuffType, duration, expirationTime, source = UnitDebuff(unit, index)
-			if not name then break end
-			if duration > 0 then
-				local uid = unit .. ":debuff:" .. name
-				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, "DEBUFFS_ON_ME", showBuffHyperlink, unit, index, "HARMFUL")
-				buffs[uid] = true
-				tmp[uid] = nil
-			end
-			index = index + 1			
+		for k, v in pairs(tmp) do
+			SexyCooldown:RemoveItem(k)
 		end
-	elseif unit == "target" then
-		index = 1
-		while true do
-			name, rank, icon, count, debuffType, duration, expirationTime, source = UnitDebuff(unit, index)
-			if not name then break end
-			if source and source == "player" and duration > 0 then
-				local uid = unit .. ":debuff:" .. name
-				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, "MY_DEBUFFS", showBuffHyperlink, unit, index, "HARMFUL")
-				buffs[uid] = true
-				tmp[uid] = nil
-			end
-			index = index + 1			
-		end
-	end
-	
-	for k, v in pairs(tmp) do
-		SexyCooldown:RemoveItem(k)
 	end
 end
