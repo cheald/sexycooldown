@@ -55,9 +55,18 @@ mod.barDefaults = {
 			splashScale = 4,
 			splashSpeed = 0.5,
 			borderSize = 13
+		},
+		events = {
+			SPELL_COOLDOWN = true,
+			PET_SPELL_COOLDOWN = true,
+			ITEM_COOLDOWN = true,
+			INTERNAL_SPELL_COOLDOWN = true,
+			INTERNAL_ITEM_COOLDOWN = true
 		}		
 	}
 }
+
+mod.eventArgs = {}
 
 function mod:GetOptionsTable(frame)
 	local db = frame.db.profile
@@ -477,37 +486,61 @@ function mod:GetOptionsTable(frame)
 					hidden = showAdvanced
 				},	
 			}
+		},
+		events = {
+			type = "group",
+			name = L["Event Types"],
+			get = "getEvents",
+			set = "setEvents",
+			args = mod.eventArgs
 		}
 	}
 
+	local handlers = {}
+	handlers.get = function(info)
+		local obj = db
+		for i = 3, #info do
+			obj = obj[info[i]]
+		end			
+		if type(obj) == "table" then
+			return obj.r, obj.g, obj.b, obj.a
+		else
+			return obj
+		end
+	end
+	
+	handlers.set = function(info, ...)
+		local obj = db
+		for i = 3, #info - 1 do
+			obj = obj[info[i]]
+		end
+		if select("#", ...) == 1 then
+			obj[info[#info]] = ...
+		else
+			local t = obj[info[#info]]
+			t.r, t.g, t.b, t.a = ...
+		end
+		frame:UpdateLook()		
+	end
+	
+	handlers.getEvents = function(self, info)
+		return db.events[info[#info]]
+	end
+	
+	handlers.setEvents = function(self, info, value)
+		-- handlers.set(info, value)
+		db.events[info[#info]] = value
+		frame:ExpireInvalidByFilter()
+		mod:Refresh(info[#info])
+	end
+	
 	return {
 		type = "group",
 		name = frame.name,
 		arg = frame,
-		get = function(info)
-			local obj = db
-			for i = 3, #info do
-				obj = obj[info[i]]
-			end			
-			if type(obj) == "table" then
-				return obj.r, obj.g, obj.b, obj.a
-			else
-				return obj
-			end
-		end,
-		set = function(info, ...)
-			local obj = db
-			for i = 3, #info - 1 do
-				obj = obj[info[i]]
-			end
-			if select("#", ...) == 1 then
-				obj[info[#info]] = ...
-			else
-				local t = obj[info[#info]]
-				t.r, t.g, t.b, t.a = ...
-			end
-			frame:UpdateLook()
-		end,
+		handler = handlers,
+		get = handlers.get,
+		set = handlers.set,
 		args = options
 	}
 end

@@ -2,7 +2,7 @@
 ## Title: SexyCooldown
 ## Notes: A sexy logarithmic cooldown bar
 ## Author: Antiarc
-## Version: 0.5.4
+## Version: 0.6
 ## SavedVariables: SexyCooldownDB
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibInternalCooldowns-1.0
 
@@ -12,3 +12,7 @@ loadstub.lua
 options.lua
 prototype.lua
 core.lua
+
+Modules\Spells.lua
+Modules\Items.lua
+Modules\Auras.lua

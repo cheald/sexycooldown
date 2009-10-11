@@ -40,6 +40,9 @@ function barPrototype:Init()
 	self.cooldowns = {}
 	self.durations = {}
 	
+	-- self.animationTimer = self:CreateAnimationGroup()
+	-- self.animationTimerScript = self:CreateAnimation()
+	
 	self:SetBackdrop(mod.backdrop)
 	if not self.settings.bar.x then
 		self.settings.bar.x, self.settings.bar.y = self.settings.x, self.settings.y
@@ -162,9 +165,11 @@ function barPrototype:Init()
 	self.splashAnchor.lock = function(self, lock)
 		if lock then
 			self.close:Hide()
+			self:EnableMouse(false)
 			self:SetBackdropColor(0,0,0,0)
 		else
 			self.close:Show()
+			self:EnableMouse(true)
 			self:SetBackdropColor(0,1,0,1)
 		end
 	end
@@ -174,7 +179,7 @@ function barPrototype:Init()
 end
 
 function barPrototype:OpenConfig()
-	mod:Config()
+	mod:Config(self.name)
 end
 
 function barPrototype:Vertical()
@@ -197,7 +202,7 @@ end
 do
 	local framelevelSerial = 10
 	local delta = 0
-	local throttle = 1 / 33
+	local throttle = 1 / 37
 	function barPrototype:OnUpdate(t)
 		delta = delta + t		
 		if delta < throttle then return end
@@ -370,17 +375,29 @@ do
 		return f
 	end
 	
-	function barPrototype:CreateCooldown(name, typ, id, startTime, duration, icon)
-		if not duration then
-			error((":CreateCooldown requires a numeric duration, %s %s %s"):format(tostring(name), tostring(typ), tostring(id)))
+	local function filterValid(self, filter)		
+		if filter then
+			-- accepts ITEM_COOLDOWN, ItemCooldown, itemCooldown, etc.
+			for k, v in pairs(self.settings.events) do
+				if filter == k and v then
+					return true
+				end
+			end
+			return false
+		else
+			return true
 		end
+	end
+	
+	function barPrototype:CreateCooldown(uid, name, icon, startTime, duration, filter, callback, ...)
+		if not filterValid(self, filter) then return end		
+		
 		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
 		if duration > self.settings.bar.maxDuration and self.settings.bar.maxDuration ~= 0 then return end
 		
-		local hyperlink = ("%s:%s"):format(typ, id)
-		if self.settings.blacklist[hyperlink] then return end
+		if self.settings.blacklist[uid] then return end
 		
-		local f = self.cooldowns[hyperlink]
+		local f = self.cooldowns[uid]
 		if not f then
 			f = tremove(framePool)
 			if not f then
@@ -407,20 +424,21 @@ do
 			if framelevelSerial > 60 then
 				framelevelSerial = 10
 			end
-			f.useTooltip = typ == "spell" or typ == "item"
-			f.hyperlink = hyperlink
-			self.cooldowns[f.hyperlink] = f
-			self.durations[f.hyperlink] = duration
-			
-			f.endTime = startTime + duration
+			f.uid = uid
+			self.cooldowns[f.uid] = f
+			self.durations[f.uid] = duration
 			
 			f.parent = self			
-			f:SetCooldownTexture(typ, id)			
+			f:SetCooldownTexture(icon)			
 			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
 			f:Show()
 			self:Activate()
 		end
+		f.filter = filter
+		f.tooltipCallback = callback
+		f.arg1, f.arg2, f.arg3, f.arg4 = ...
+		f.endTime = startTime + duration
 		f.startTime = startTime
 		f.duration = duration
 		self:SetMaxDuration()
@@ -430,10 +448,23 @@ do
 		self:SetScript("OnUpdate", self.OnUpdate)		
 	end
 	
-	function barPrototype:CastFailure(typ, id)
-		local hyperlink = typ .. ":" .. id
+	function barPrototype:ExpireInvalidByFilter()
+		for _, frame in ipairs(self.usedFrames) do
+			if not filterValid(self, frame.filter) then
+				frame:Expire(true)
+			end
+		end
+	end
+	
+	function barPrototype:ExpireCooldown(uid)
+		if self.cooldowns[uid] then
+			self.cooldowns[uid]:Expire(true)
+		end
+	end
+	
+	function barPrototype:CastFailure(uid)
 		for _, v in ipairs(self.usedFrames) do
-			if v.hyperlink == hyperlink and v.endTime - GetTime() > 0.3 then
+			if v.uid == uid and v.endTime - GetTime() > 0.3 then
 				if not v.throb:IsPlaying() then
 					v.throb:Play()
 				end
@@ -597,7 +628,7 @@ end
 
 function barPrototype:UpdateLook()
 	self:UpdateBarLook()
-	self:UpdateIconLook()
+	self:UpdateIconLook()	
 end
 
 function barPrototype:Expire()
@@ -615,11 +646,15 @@ function barPrototype:Expire()
 		if frame.pulse:IsPlaying() then frame.pulse:Stop() end	
 		frame:Expire(true)
 	end
+	wipe(self.cooldowns)
 	self:Hide()
 end
 
 function barPrototype:CheckOverlap(current)
-	local l, r = current:GetLeft(), current:GetRight()
+	local getLeft = self:Vertical() and "GetBottom" or "GetLeft"
+	local getRight = self:Vertical() and "GetTop" or "GetRight"
+	
+	local l, r = current[getLeft](current), current[getRight](current)
 	if not l or not r then return end
 	
 	current.lastOverlapCheck = current.lastOverlapCheck or 0
@@ -629,10 +664,10 @@ function barPrototype:CheckOverlap(current)
 	current.pulsing = false
 	for _, icon in ipairs(self.usedFrames) do
 		if icon ~= current then
-			local ir, il = icon:GetRight(), icon:GetLeft()
+			local ir, il = icon[getLeft](icon), icon[getRight](icon)
 			if (ir >= l and ir <= r) or (il >= l and il <= r) then
 				local overlap = math.min(math.abs(ir - l), math.abs(il - r))
-				if overlap > 5 then
+				if overlap > 0 then
 					local frame = icon:GetFrameLevel() >= current:GetFrameLevel() and icon or current
 					if not frame.pulse:IsPlaying() then
 						frame.pulse:Play()
@@ -650,31 +685,20 @@ end
 ------------------------------------------------------
 -- Button prototype
 ------------------------------------------------------
-function cooldownPrototype:SetCooldownTexture(typ, id)
-	local icon = self.icon
-	if not icon then
-		local _
-		if typ == "spell" then
-			_, _, icon = GetSpellInfo(id)
-		elseif typ == "item" then
-			_, _, _, _, _, _, _, _, _, icon = GetItemInfo(id)
-		end
-	end
-	if icon then
-		self.tex:SetTexture(icon)
-		self.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
-		
-		self.overlay.tex:SetTexture(icon)
-		self.overlay.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
-	end
+function cooldownPrototype:SetCooldownTexture(icon)
+	self.tex:SetTexture(icon)
+	self.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
+	
+	self.overlay.tex:SetTexture(icon)
+	self.overlay.tex:SetTexCoord(0.09, 0.91, 0.09, 0.91)
 end
 
 function cooldownPrototype:ShowTooltip()
-	if not self.hyperlink or not self.useTooltip then 
+	if not self.tooltipCallback then 
 		return
 	end
 	GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-	GameTooltip:SetHyperlink(self.hyperlink)
+	self.tooltipCallback(self, self.arg1, self.arg2, self.arg3, self.arg4)
 	GameTooltip:Show()
 end
 
@@ -701,8 +725,8 @@ function cooldownPrototype:Expire(noanimate)
 	else
 		self.finish:Play()
 	end
-	parent.cooldowns[self.hyperlink] = nil
-	parent.durations[self.hyperlink] = nil
+	parent.cooldowns[self.uid] = nil
+	parent.durations[self.uid] = nil
 end
 	
 function cooldownPrototype:UpdateTime()
@@ -758,6 +782,6 @@ function cooldownPrototype:UpdateTime()
 end
 
 function cooldownPrototype:Blacklist()
-	self.parent.db.profile.blacklist[self.hyperlink] = self.name
+	self.parent.db.profile.blacklist[self.uid] = self.name
 	self:Expire(true)
 end
