@@ -50,7 +50,7 @@ do
 			name, rank, icon, count, debuffType, duration, expirationTime, source = func(unit, index)
 			if not name then break end
 			local filterValid = false
-			filterValid = filterSource == nil or filterValid == source
+			filterValid = filterSource == nil or source == nil or UnitIsUnit(filterSource, source)
 			
 			if duration > 0 and filterValid then
 				local uid = unit .. uidstr .. name
@@ -63,7 +63,6 @@ do
 	end
 
 	function mod:UpdateUnit(unit)
-
 		wipe(tmp)
 		existingBuffs[unit] = existingBuffs[unit] or {}	
 		local buffs = existingBuffs[unit]
@@ -77,7 +76,7 @@ do
 			check(unit, ":buff:", "BUFFS_ON_ME", UnitBuff, "HELPFUL")
 			check(unit, ":debuff:", "DEBUFFS_ON_ME", UnitDebuff, "HARMFUL")
 		elseif unit == "target" then
-			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL")
+			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		elseif unit == "focus" then
 			check(unit, ":debuff:", "MY_FOCUS_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		end
