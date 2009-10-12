@@ -20,6 +20,10 @@ L["My target debuffs"] = true
 L["Show the duration of my debuffs on my target on this bar"] = true
 L["Focus debuffs"] = true
 L["Show the duration of my debuffs on my focus on this bar"] = true
+L["My target buffs"] = true
+L["Show the duration of my buffs on my target on this bar"] = true
+L["Focus buffs"] = true
+L["Show the duration of my buffs on my focus on this bar"] = true
 L["Buffs on me"] = true
 L["Show the duration of buffs on me on this bar"] = true
 

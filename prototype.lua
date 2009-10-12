@@ -377,13 +377,7 @@ do
 	
 	local function filterValid(self, filter)		
 		if filter then
-			-- accepts ITEM_COOLDOWN, ItemCooldown, itemCooldown, etc.
-			for k, v in pairs(self.settings.events) do
-				if filter == k and v then
-					return true
-				end
-			end
-			return false
+			return self.settings.events[filter]
 		else
 			return true
 		end

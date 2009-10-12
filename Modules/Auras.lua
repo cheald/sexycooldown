@@ -11,6 +11,12 @@ function mod:OnInitialize()
 	SexyCooldown.RegisterFilter(self, "MY_FOCUS_DEBUFFS", 
 		L["Focus debuffs"], 
 		L["Show the duration of my debuffs on my focus on this bar"])
+	SexyCooldown.RegisterFilter(self, "MY_TARGET_BUFFS", 
+		L["My target buffs"], 
+		L["Show the duration of my buffs on my target on this bar"])
+	SexyCooldown.RegisterFilter(self, "MY_FOCUS_BUFFS", 
+		L["Focus buffs"], 
+		L["Show the duration of my buffs on my focus on this bar"])
 	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
 		L["Buffs on me"], 
 		L["Show the duration of buffs on me on this bar"])
@@ -50,7 +56,7 @@ do
 			name, rank, icon, count, debuffType, duration, expirationTime, source = func(unit, index)
 			if not name then break end
 			local filterValid = false
-			filterValid = filterSource == nil or source == nil or UnitIsUnit(filterSource, source)
+			filterValid = (filterSource == nil and source == nil) or UnitIsUnit(filterSource, source)
 			
 			if duration > 0 and filterValid then
 				local uid = unit .. uidstr .. name
@@ -76,8 +82,10 @@ do
 			check(unit, ":buff:", "BUFFS_ON_ME", UnitBuff, "HELPFUL")
 			check(unit, ":debuff:", "DEBUFFS_ON_ME", UnitDebuff, "HARMFUL")
 		elseif unit == "target" then
+			check(unit, ":buff:", "MY_TARGET_BUFFS", UnitBuff, "HELPFUL", "player")
 			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		elseif unit == "focus" then
+			check(unit, ":buff:", "MY_TARGET_BUFFS", UnitBuff, "HELPFUL", "player")
 			check(unit, ":debuff:", "MY_FOCUS_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		end
 		

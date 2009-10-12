@@ -1,13 +1,3 @@
---[[
-The new event PLAYER_TOTEM_UPDATE seems to fire when a totem is dropped or destroyed and its arg1 is the slot of the totem in question
-
-New Functions:
-haveTotem, name, startTime, duration, icon = GetTotemInfo(slot);
-timeRemaining = GetTotemTimeLeft(slot);
-DestroyTotem(slot); 
-
-]]--
-
 if select(2, UnitClass("player")) ~= "SHAMAN" then return end
 
 local mod = SexyCooldown:NewModule("Totems", "AceEvent-3.0")
