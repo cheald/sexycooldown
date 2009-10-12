@@ -55,8 +55,7 @@ do
 		while true do
 			name, rank, icon, count, debuffType, duration, expirationTime, source = func(unit, index)
 			if not name then break end
-			local filterValid = false
-			filterValid = (filterSource == nil and source == nil) or UnitIsUnit(filterSource, source)
+			local filterValid = filterSource == nil or filterSource and source and UnitIsUnit(filterSource, source)
 			
 			if duration > 0 and filterValid then
 				local uid = unit .. uidstr .. name
