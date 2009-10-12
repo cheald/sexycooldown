@@ -172,38 +172,48 @@ function mod:UpdateBarDB()
 	end	
 end
 
-local function bindToMetaTable(target, source)
-	setmetatable(target, {__index = source})
-	for k, v in pairs(target) do
-		if type(v) == "table" and source[k] then
-			bindToMetaTable(v, source[k])
+local function bindToMetaTable(toBind, bindTo)
+	for k, v in pairs(toBind) do
+		if type(v) == "table" and bindTo[k] then
+			bindToMetaTable(v, bindTo[k])
 		end
 	end
+	
+	return setmetatable(toBind, {__index = function(t, k)
+		if type(bindTo[k]) == "table" then
+			rawset(t, k, bindToMetaTable({}, bindTo[k]))
+			return rawget(t, k)
+		else
+			return bindTo[k]
+		end
+	end})
 end
 
 local barOptionsCount = 0
 function mod:CreateBar(settings, defaultName)
-	settings = settings or deepcopy(mod.barDefaults)
+	settings = settings or {}
+	bindToMetaTable(settings, self.barDefaults)
+	
 	local frame = setmetatable(CreateFrame("Frame", nil, UIParent), self.barMeta)
-	local name = settings.bar.name or defaultName
-	if not name then
-		name = "Bar " .. (#self.db.profile.bars + 1)
-		settings.bar.name = name
-	end
-	settings.bar.name = name
+	
 	local existing = false
 	for k, v in ipairs(self.db.profile.bars) do
 		if v == settings then
-			frame.id = k
 			existing = true
 			break
 		end
 	end
 	if not existing then
 		tinsert(self.db.profile.bars, settings)
-		frame.id = #self.db.profile.bars
+		-- self.db:RegisterDefaults(defaults)
 	end	
-	bindToMetaTable(settings, mod.barDefaults)
+	
+	local name = settings.bar.name or defaultName
+	if not name then
+		name = "Bar " .. (#self.db.profile.bars + 1)
+	end
+	settings.bar.name = name
+	
 	frame.settings = settings
 	frame.optionsTable = self:GetOptionsTable(frame)
 	frame.optionsKey = "baroptions" .. barOptionsCount
