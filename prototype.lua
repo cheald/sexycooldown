@@ -1,25 +1,50 @@
 local mod = SexyCooldown
-local math_pow = _G.math.pow
-local string_format = _G.string.format
-local math_floor = _G.math.floor
-local math_fmod = _G.math.fmod
-local math_min = _G.math.min
-
-local function getPos(val, valMax, base)
-	return math_pow(val, base) / math_pow(valMax, base)
-end
 local LSM = LibStub("LibSharedMedia-3.0")
 
+local math_min, math_abs, math_pow, math_floor, math_fmod = _G.math.min, _G.math.abs, _G.math.pow, _G.math.floor, _G.math.fmod
+local string_format = _G.string.format
 local GetTime = _G.GetTime
 local dummyFrame = CreateFrame("Frame")
 local cooldownPrototype = setmetatable({}, {__index = dummyFrame})
 local cooldownMeta = {__index = cooldownPrototype}
 local barPrototype = setmetatable({}, {__index = dummyFrame})
+local pairs, ipairs, next = _G.pairs, _G.ipairs, _G.next
+local tremove, tinsert = _G.tremove, _G.tinsert
 
 mod.barMeta = {__index = barPrototype}
 
 local framePool = {}
 local stringPool = {}
+local updateFrames = {}
+
+local function getPos(val, valMax, base)
+	return math_pow(val, base) / math_pow(valMax, base)
+end
+
+local delta = 0
+local throttle = 1 / 30
+local runOnUpdates = function(self, t)
+	delta = delta + t
+	if delta < throttle then return end
+	delta = delta - throttle
+	for k, v in pairs(updateFrames) do
+		for _, frame in ipairs(k.usedFrames) do		
+			frame:UpdateTime()
+		end
+	end
+end
+
+local function activateFrame(frame)
+	updateFrames[frame] = true
+	dummyFrame:SetScript("OnUpdate", runOnUpdates)
+end
+
+local function deactivateFrame(frame)
+	updateFrames[frame] = nil
+	if not next(updateFrames) then
+		dummyFrame:SetScript("OnUpdate", nil)
+	end
+end
 
 local function getAnchorSide(self)
 	local o = self.settings.bar.orientation
@@ -57,7 +82,7 @@ function barPrototype:Init()
 		local x, y = self:GetCenter()
 		local ox, oy = UIParent:GetCenter()
 		local nx, ny = x - ox, y - oy
-		local xdiff, ydiff = math.abs(nx - self.settings.bar.x), math.abs(ny - self.settings.bar.y)
+		local xdiff, ydiff = math_abs(nx - self.settings.bar.x), math_abs(ny - self.settings.bar.y)
 		if xdiff > 1 or ydiff > 1 then
 			self.settings.bar.x = nx
 			self.settings.bar.y = ny
@@ -200,17 +225,6 @@ end
 
 do
 	local framelevelSerial = 10
-	local delta = 0
-	local throttle = 1 / 30
-	function barPrototype:OnUpdate(t)
-		self.updateDelta = self.updateDelta or 0
-		self.updateDelta = self.updateDelta + t		
-		if self.updateDelta < throttle then return end
-		self.updateDelta = self.updateDelta - throttle
-		for _, frame in ipairs(self.usedFrames) do		
-			frame:UpdateTime()
-		end
-	end
 	
 	local backdrop = {
 		edgeFile = [[Interface\GLUES\COMMON\TextPanel-Border.blp]],
@@ -252,15 +266,15 @@ do
 		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed * 1.2)
 		
 		if self.settings.icon.disableTooltip then
-			icon:EnableMouse(false)
+			icon.overlay:EnableMouse(false)
 		else
-			icon:EnableMouse(true)
+			icon.overlay:EnableMouse(true)
 		end
 	end
 	
 	local function onClick(self, button)
 		if button == "RightButton" then
-			self:Blacklist()
+			self.icon:Blacklist()
 		end
 	end
 	
@@ -284,16 +298,17 @@ do
 			self.fadeAlpha:SetDuration(0.33)
 			self.fade:Play()
 		end
+		deactivateFrame(self)
 	end
 	
 	function barPrototype:CreateNewCooldownFrame()
 		local f = setmetatable(CreateFrame("Frame"), cooldownMeta)
-		f:SetScript("OnMouseUp", onClick)
 		
 		f.tex = f:CreateTexture(nil, "ARTWORK")
 
 		f.overlay = CreateFrame("Frame", nil, f)
 		f.overlay:SetAllPoints()
+		f.overlay.icon = f
 		f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
 		
 		f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
@@ -302,9 +317,10 @@ do
 		f.overlay.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
 		f.overlay.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
 		
-		f:SetScript("OnEnter", f.ShowTooltip)
-		f:SetScript("OnLeave", f.HideTooltip)
-		f:EnableMouse(true)
+		f.overlay:SetScript("OnEnter", f.ShowTooltip)
+		f.overlay:SetScript("OnLeave", f.HideTooltip)
+		f.overlay:SetScript("OnMouseUp", onClick)
+		f.overlay:EnableMouse(true)
 		
 		f.finish = f:CreateAnimationGroup()
 		f.finishAlpha = f.finish:CreateAnimation("Alpha")
@@ -341,18 +357,26 @@ do
 		f.pulseAlpha:SetDuration(0.4)
 		f.pulseAlpha:SetEndDelay(0.4)
 		f.pulseAlpha:SetStartDelay(0.4)
+		f.pulse:SetScript("OnLoop", function(self, loopState)
+			if loopState == "FORWARD" then
+				f.pulseFrameLevel = f:GetFrameLevel()
+				f:SetFrameLevel(8)
+			elseif f.pulseFrameLevel then
+				f:SetFrameLevel(f.pulseFrameLevel)
+			end
+		end)
 		
 		local throbScale = 1.6
 		f.throb = f:CreateAnimationGroup()
 		f.throb[1] = f.throb:CreateAnimation("Scale")
 		f.throb[1]:SetScale(throbScale, throbScale)
-		f.throb[1]:SetDuration(0.025)
-		f.throb[1]:SetEndDelay(0.2)
+		f.throb[1]:SetDuration(0.1)
+		f.throb[1]:SetEndDelay(0.25)
 		f.throb[1]:SetOrder(1)
 
 		f.throb[2] = f.throb:CreateAnimation("Scale")
 		f.throb[2]:SetScale(1 / throbScale, 1 / throbScale)
-		f.throb[2]:SetDuration(0.02)
+		f.throb[2]:SetDuration(0.1)
 		f.throb[2]:SetOrder(2)
 		
 		f.throb:SetScript("OnPlay", function()
@@ -439,7 +463,7 @@ do
 		f.lastOverlapCheck = 0
 		f:ClearAllPoints()
 		f:UpdateTime()
-		self:SetScript("OnUpdate", self.OnUpdate)		
+		activateFrame(self)
 	end
 	
 	function barPrototype:ExpireInvalidByFilter()
@@ -626,7 +650,7 @@ function barPrototype:UpdateLook()
 end
 
 function barPrototype:Expire()
-	self:SetScript("OnUpdate", nil)
+	deactivateFrame(self)
 	
 	while #self.usedStrings > 0 do
 		local l = tremove(self.usedStrings)
@@ -660,7 +684,7 @@ function barPrototype:CheckOverlap(current)
 		if icon ~= current then
 			local ir, il = icon[getLeft](icon), icon[getRight](icon)
 			if (ir >= l and ir <= r) or (il >= l and il <= r) then
-				local overlap = math.min(math.abs(ir - l), math.abs(il - r))
+				local overlap = math_min(math_abs(ir - l), math_abs(il - r))
 				if overlap >= 0 then				
 					local frame = icon:GetFrameLevel() > current:GetFrameLevel() and icon or current
 					if not frame.pulse:IsPlaying() then
@@ -688,11 +712,12 @@ function cooldownPrototype:SetCooldownTexture(icon)
 end
 
 function cooldownPrototype:ShowTooltip()
-	if not self.tooltipCallback then 
+	local icon = self.icon
+	if not icon.tooltipCallback then 
 		return
 	end
-	GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
-	self.tooltipCallback(self, self.arg1, self.arg2, self.arg3, self.arg4)
+	GameTooltip:SetOwner(icon, "ANCHOR_CURSOR")
+	icon.tooltipCallback(icon, icon.arg1, icon.arg2, icon.arg3, icon.arg4)
 	GameTooltip:Show()
 end
 
@@ -709,7 +734,6 @@ function cooldownPrototype:Expire(noanimate)
 		end
 	end
 	if #parent.usedFrames == 0 then
-		parent:SetScript("OnUpdate", nil)
 		parent:Deactivate()
 	end
 	

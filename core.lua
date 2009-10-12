@@ -10,6 +10,10 @@ local GetContainerItemCooldown = _G.GetContainerItemCooldown
 local GetContainerItemLink = _G.GetContainerItemLink
 local GetSpellCooldown = _G.GetSpellCooldown
 
+local pairs, ipairs, next = _G.pairs, _G.ipairs, _G.next
+local tremove, tinsert = _G.tremove, _G.tinsert
+local type, rawset, rawget = _G.type, _G.rawset, _G.rawget
+
 local activeFilters = {}
 local defaults = {
 	profile = {
@@ -68,6 +72,17 @@ mod.deepcopy = deepcopy
 
 local configFrame
 
+local function isSlashCommandRegistered(command)
+	for k, v in pairs(SlashCmdList) do
+		for i = 1, 3 do
+			if _G["SLASH_" .. k .. i] == command then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function mod:OnInitialize()
 	self:UpdateBarDB()
 	
@@ -82,6 +97,13 @@ function mod:OnInitialize()
 	ACD3:AddToBlizOptions("SexyCooldown", L["Profiles"], "SexyCooldown", "profiles")
 	self:Setup()
 	self.bars = frames
+	
+	if not isSlashCommandRegistered("/scd") then
+		self:RegisterChatCommand("scd", "Config")
+	end
+	self:RegisterChatCommand("sexycd", "Config")
+	self:RegisterChatCommand("sexycooldown", "Config")
+	self:RegisterChatCommand("sexycooldowns", "Config")
 end
 
 function mod:Config(bar)
@@ -152,6 +174,7 @@ end
 
 -- For 0.6.2 to 0.6.3
 function mod:UpdateBarDB()
+	if not SexyCooldownDB then return end
 	if not SexyCooldownDB.global or not SexyCooldownDB.global.dbVersion or SexyCooldownDB.global.dbVersion < 2 then
 		if SexyCooldownDB.namespaces then
 			for namespace, settings in pairs(SexyCooldownDB.namespaces) do
@@ -215,7 +238,7 @@ function mod:CreateBar(settings, defaultName)
 	
 	local name = settings.bar.name or defaultName
 	if not name then
-		name = "Bar " .. (#self.db.profile.bars + 1)
+		name = "Bar " .. (#self.db.profile.bars)
 	end
 	settings.bar.name = name
 	
@@ -286,14 +309,8 @@ function mod:RemoveItem(uid)
 end
 
 function mod:CastFailure(uid)
-	if unit == "player" and spells.PLAYER[spell] then
-		for _, frame in ipairs(frames) do
-			frame:CastFailure("spell", spells.PLAYER[spell])
-		end
-	elseif unit == "pet" and spells.PET[spell] then
-		for _, frame in ipairs(frames) do
-			frame:CastFailure("spell", spells.PET[spell])
-		end
+	for _, frame in ipairs(frames) do
+		frame:CastFailure(uid)
 	end
 end
 
