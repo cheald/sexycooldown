@@ -666,6 +666,7 @@ function barPrototype:Expire()
 	end
 	wipe(self.cooldowns)
 	self:Hide()
+	self.splashAnchor:Hide()
 end
 
 function barPrototype:CheckOverlap(current)

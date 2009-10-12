@@ -315,5 +315,7 @@ function mod:CastFailure(uid)
 end
 
 function mod.SHOW_HYPERLINK(frame, link)
-	GameTooltip:SetHyperlink(link)
+	if link then
+		GameTooltip:SetHyperlink(link)
+	end
 end
