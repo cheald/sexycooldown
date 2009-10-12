@@ -63,7 +63,7 @@ function mod:OnEnable()
 end
 
 function mod:InternalCooldowns_TalentProc(callback, spellID, start, duration)
-	local name, _ icon = GetSpellInfo(spellID)
+	local name, _, icon = GetSpellInfo(spellID)
 	local uid = ("%s:%d"):format("spell", spellID)
 	SexyCooldown:AddItem(uid, name, icon, start, duration, "INTERNAL_SPELL_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. spellID)	
 end
@@ -106,6 +106,14 @@ function mod:CleanupCooldowns()
 	end		
 end
 
+local function getID(name)
+	local link = GetSpellLink(name)
+	if link then
+		return link:match("spell:(%d+)")
+	end
+	return nil
+end
+
 function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 	local start, duration, active, id
 	local added = false
@@ -113,8 +121,9 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 	for _, name in ipairs(spellQueue) do
 		start, duration, active = GetSpellCooldown(name)
 		if active == 1 and start > 0 and duration > 3 then
-			local name, _, icon = GetSpellInfo(spellSet[name])
-			local uid = "spell:" .. spellSet[name]
+			local name, _, icon = GetSpellInfo(name)
+			local id = spellSet[name] or getID(name)
+			local uid = "spell:" .. id
 			SexyCooldown:AddItem(uid, name, icon, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			added = true
 			break
@@ -125,8 +134,9 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 		for name, id in pairs(spellSet) do
 			start, duration, active = GetSpellCooldown(name)
 			if active == 1 and start > 0 and duration > 3 then
-				local name, _, icon = GetSpellInfo(spellSet[name])
-				local uid = "spell:" .. spellSet[name]
+				local name, _, icon = GetSpellInfo(name)
+				local id = spellSet[name] or getID(name)
+				local uid = "spell:" .. id
 				SexyCooldown:AddItem(uid, name, icon, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			end
 		end
