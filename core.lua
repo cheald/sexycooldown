@@ -64,6 +64,7 @@ local function deepcopy(from)
 	end
 	return to
 end
+mod.deepcopy = deepcopy
 
 local configFrame
 
@@ -187,6 +188,10 @@ local function bindToMetaTable(toBind, bindTo)
 			return bindTo[k]
 		end
 	end})
+end
+
+function mod:CloneSettings(settings)
+	return bindToMetaTable(deepcopy(settings), self.barDefaults)
 end
 
 local barOptionsCount = 0

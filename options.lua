@@ -74,7 +74,49 @@ function mod:GetOptionsTable(frame)
 		return db.bar.advancedOptions ~= true
 	end
 	
+	local copyVal, copyList = nil, {}
 	local options = {
+		copy = {
+			type = "group",
+			name = L["Clone from..."],
+			desc = L["Clone from another bar"],
+			args = {
+				source = {
+					type = "select",
+					name = L["Clone from..."],
+					values = function()
+						wipe(copyList)
+						for k, v in ipairs(mod.db.profile.bars) do
+							if v ~= db then
+								copyList[k] = v.bar.name
+							end
+						end
+						return copyList
+					end,
+					get = function() return copyVal end,
+					set = function(info, v)
+						copyVal = v
+						local source_frame = mod.db.profile.bars[v]
+						local oldsettings = frame.settings
+						frame.settings = mod:CloneSettings(source_frame)
+						frame.settings.bar.x = oldsettings.bar.x
+						frame.settings.bar.y = oldsettings.bar.y
+						frame.settings.bar.lock = oldsettings.bar.lock
+						frame.settings.bar.name = oldsettings.bar.name
+						frame.settings.bar.advancedOptions = false
+						for k, v in ipairs(mod.db.profile.bars) do
+							if v == oldsettings then
+								mod.db.profile.bars[k] = frame.settings
+								break
+							end
+						end
+						db = frame.settings
+						frame:UpdateLook()
+					end
+				}				
+			},
+			order = 200
+		},
 		icon = {
 			type = "group",
 			name = L["Icons"],
