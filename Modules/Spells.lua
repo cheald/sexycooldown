@@ -12,9 +12,10 @@ local function cacheSpellsForBook(t, book)
 		local name = GetSpellName(i, book)
 		if not name then break end
 		
-		local _, _ = GetSpellCooldown(i, book)
 		local id = tonumber(GetSpellLink(i, book):match("spell:(%d+)"))
-		t[name] = id
+		if id and id > 0 then
+			t[name] = id
+		end
 	end
 end
 
@@ -65,7 +66,7 @@ end
 function mod:InternalCooldowns_TalentProc(callback, spellID, start, duration)
 	local name, _, icon = GetSpellInfo(spellID)
 	local uid = ("%s:%d"):format("spell", spellID)
-	SexyCooldown:AddItem(uid, name, icon, start, duration, "INTERNAL_SPELL_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. spellID)	
+	SexyCooldown:AddItem(uid, name, icon, start, duration, nil, "INTERNAL_SPELL_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. spellID)	
 end
 
 function mod:UNIT_SPELLCAST_FAILED(event, unit, spell, rank)
@@ -124,7 +125,7 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 			local name, _, icon = GetSpellInfo(name)
 			local id = spellSet[name] or getID(name)
 			local uid = "spell:" .. id
-			SexyCooldown:AddItem(uid, name, icon, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
+			SexyCooldown:AddItem(uid, name, icon, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			added = true
 			break
 		end
@@ -137,7 +138,7 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 				local name, _, icon = GetSpellInfo(name)
 				local id = spellSet[name] or getID(name)
 				local uid = "spell:" .. id
-				SexyCooldown:AddItem(uid, name, icon, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
+				SexyCooldown:AddItem(uid, name, icon, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			end
 		end
 	end

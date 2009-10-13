@@ -21,7 +21,7 @@ function mod:InternalCooldowns_Proc(callback, itemID, spellID, start, duration)
 	local texture = select(10, GetItemInfo(itemID))
 	local name = GetItemInfo(itemID)
 	local uid = ("%s:%d"):format("spell", spellID)
-	SexyCooldown:AddItem(uid, name, texture, start, duration, "INTERNAL_ITEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "item:" .. itemID)
+	SexyCooldown:AddItem(uid, name, texture, start, duration, nil, "INTERNAL_ITEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "item:" .. itemID)
 end
 
 function mod:Refresh()
@@ -35,7 +35,7 @@ function mod:Refresh()
 				local filter = LibICD:IsInternalItemCooldown(id) and "INTERNAL_ITEM_COOLDOWN" or "ITEM_COOLDOWN"				
 				local uid = "item:" .. id
 				
-				SexyCooldown:AddItem(uid, name, texture, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
+				SexyCooldown:AddItem(uid, name, texture, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			end
 		end
 	end
@@ -50,7 +50,7 @@ function mod:Refresh()
 					local name, _, _, _, _, _, _, _, _, texture = GetItemInfo(id)
 					local filter = LibICD:IsInternalItemCooldown(id) and "INTERNAL_ITEM_COOLDOWN" or "ITEM_COOLDOWN"				
 					local uid = "item:" .. id
-					SexyCooldown:AddItem(uid, name, texture, start, duration, filter, SexyCooldown.SHOW_HYPERLINK, uid)
+					SexyCooldown:AddItem(uid, name, texture, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 				end
 			end
 		end

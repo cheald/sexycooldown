@@ -15,6 +15,18 @@ local orientations = {
 	BOTTOM_TO_TOP = L["Bottom to top"]
 }
 
+local ANCHORS = {
+	LEFT = L["Center left"],
+	RIGHT = L["Center right"],
+	CENTER = L["Center"],
+	TOPLEFT = L["Top left"],
+	TOPRIGHT = L["Top right"],
+	TOP = L["Top center"],
+	BOTTOMLEFT = L["Bottom left"],
+	BOTTOM = L["Bottom center"],
+	BOTTOMRIGHT = L["Bottom right"]
+}
+
 mod.baseOptions = {
 	type = "group",
 	args = {}
@@ -51,9 +63,14 @@ mod.barDefaults = {
 		sizeOffset = 4,
 		borderInset = 4,
 		showText = true,
+		showStacks = false,
 		splashScale = 4,
 		splashSpeed = 0.5,
-		borderSize = 13
+		borderSize = 13,
+		stacksAnchor = "TOPLEFT",
+		timeAnchor = "BOTTOMRIGHT",
+		stacksOffset = 2,
+		timeOffset = 2
 	},
 	events = {
 		SPELL_COOLDOWN = true,
@@ -151,7 +168,60 @@ function mod:GetOptionsTable(frame)
 					desc = L["Show Cooldown Text"],
 					order = 120,
 					width = "full"
-				},				
+				},
+				showStacks = {
+					type = "toggle",
+					name = L["Show Stacks"],
+					desc = L["Show the number of stacks of a buff or debuff"],
+					order = 120,
+					width = "full"
+				},
+				timeAnchor = {
+					type = "select",
+					name = L["Time corner"],
+					desc = L["Select the corner to anchor the time text to."],
+					values = ANCHORS,
+					order = 122,
+					disabled = function(info)
+						return not db.icon.showText
+					end,
+				},
+				stacksAnchor = {
+					type = "select",
+					name = L["Stacks corner"],
+					desc = L["Select the corner to anchor the stack text to."],
+					values = ANCHORS,
+					order = 121,
+					disabled = function(info)
+						return not db.icon.showStacks
+					end,
+				},
+				stacksOffset = {
+					type = "range",
+					name = L["Stacks offset"],
+					desc = L["Offset for stack text"],
+					min = -20,
+					max = 20,
+					step = 1,
+					bigStep = 1,
+					order = 121,
+					disabled = function(info)
+						return not db.icon.showStacks
+					end,
+				},
+				timeOffset = {
+					type = "range",
+					name = L["Time offset"],
+					desc = L["Offset for time text"],
+					min = -20,
+					max = 20,
+					step = 1,
+					bigStep = 1,
+					order = 122,
+					disabled = function(info)
+						return not db.icon.showText
+					end
+				},
 				font = {
 					type = "select",
 					name = L["Font"],
@@ -159,9 +229,10 @@ function mod:GetOptionsTable(frame)
 					dialogControl = 'LSM30_Font',
 					values = LSM:HashTable("font"),
 					disabled = function(info)
-						return not db.icon.showText
+						return not db.icon.showText and not db.icon.showStacks
 					end,
-					order = 121
+					order = 121,
+					width = "full"
 				},
 				fontsize = {
 					type = "range",
@@ -172,7 +243,7 @@ function mod:GetOptionsTable(frame)
 					step = 1,
 					bigStep = 1,
 					disabled = function(info)
-						return not db.icon.showText
+						return not db.icon.showText and not db.icon.showStacks
 					end,
 					order = 123,
 					width = "full"
@@ -183,7 +254,7 @@ function mod:GetOptionsTable(frame)
 					desc = L["Font color"],
 					hasAlpha = true,
 					disabled = function(info)
-						return not db.icon.showText
+						return not db.icon.showText and not db.icon.showStacks
 					end,
 					order = 123
 				},				
@@ -193,10 +264,10 @@ function mod:GetOptionsTable(frame)
 					desc = L["Font Outline"],
 					values = outlines,
 					disabled = function(info)
-						return not db.icon.showText
+						return not db.icon.showText and not db.icon.showStacks
 					end,
-					order = 122
-				},				
+					order = 125
+				},
 				borderheader = {
 					type = "header",
 					name = L["Borders"],
@@ -591,6 +662,11 @@ function mod:GetOptionsTable(frame)
 		-- handlers.set(info, value)
 		db.events[info[#info]] = value
 		frame:ExpireInvalidByFilter()
+		if value then
+			mod:RegisterBarForFilter(frame, info[#info])
+		else
+			mod:UnregisterBarForFilter(frame, info[#info])
+		end
 		mod:Refresh(info[#info])
 	end
 	

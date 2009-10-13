@@ -2,24 +2,33 @@ local mod = SexyCooldown:NewModule("Buffs and Debuffs", "AceEvent-3.0", "AceBuck
 local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 
 function mod:OnInitialize()	
+	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
+		L["Buffs on me"], 		
+		L["Show the duration of buffs on me on this bar"], 1)		
 	SexyCooldown.RegisterFilter(self, "DEBUFFS_ON_ME",
 		L["Debuffs on me"],
-		L["Show the duration of debuffs on me on this bar"])
-	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
-		L["My target debuffs"], 
-		L["Show the duration of my debuffs on my target on this bar"])
+		L["Show the duration of debuffs on me on this bar"], 2)
+		
 	SexyCooldown.RegisterFilter(self, "MY_FOCUS_DEBUFFS", 
 		L["Focus debuffs"], 
-		L["Show the duration of my debuffs on my focus on this bar"])
-	SexyCooldown.RegisterFilter(self, "MY_TARGET_BUFFS", 
-		L["My target buffs"], 
-		L["Show the duration of my buffs on my target on this bar"])
+		L["Show the duration of my debuffs on my focus on this bar"], 4)
 	SexyCooldown.RegisterFilter(self, "MY_FOCUS_BUFFS", 
 		L["Focus buffs"], 
-		L["Show the duration of my buffs on my focus on this bar"])
-	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
-		L["Buffs on me"], 
-		L["Show the duration of buffs on me on this bar"])
+		L["Show the duration of my buffs on my focus on this bar"], 3)
+		
+	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
+		L["My target debuffs"], 
+		L["Show the duration of my debuffs on my target on this bar"], 6)
+	SexyCooldown.RegisterFilter(self, "MY_TARGET_BUFFS", 
+		L["My target buffs"], 
+		L["Show the duration of my buffs on my target on this bar"], 5)
+
+	SexyCooldown.RegisterFilter(self, "ALL_TARGET_DEBUFFS", 
+		L["All target debuffs"], 
+		L["Show the duration of all debuffs on my target on this bar"], 8)
+	SexyCooldown.RegisterFilter(self, "ALL_TARGET_BUFFS", 
+		L["All target buffs"], 
+		L["Show the duration of all buffs on my target on this bar"], 7)
 end
 
 function mod:OnEnable()
@@ -49,6 +58,8 @@ do
 	local existingBuffs = {}
 
 	local function check(unit, uidstr, filter, func, funcFilter, filterSource)
+		if not SexyCooldown:IsFilterRegistered(filter) then return end
+		
 		local buffs = existingBuffs[unit]
 		local name, rank, icon, count, debuffType, duration, expirationTime, source, index
 		index = 1
@@ -59,7 +70,7 @@ do
 			
 			if duration > 0 and filterValid then
 				local uid = unit .. uidstr .. name
-				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, filter, showBuffHyperlink, unit, index, funcFilter)
+				SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, count, filter, showBuffHyperlink, unit, index, funcFilter)				
 				buffs[uid] = true
 				tmp[uid] = nil
 			end
@@ -81,6 +92,9 @@ do
 			check(unit, ":buff:", "BUFFS_ON_ME", UnitBuff, "HELPFUL")
 			check(unit, ":debuff:", "DEBUFFS_ON_ME", UnitDebuff, "HARMFUL")
 		elseif unit == "target" then
+			check(unit, ":buff:", "ALL_TARGET_BUFFS", UnitBuff, "HELPFUL")
+			check(unit, ":debuff:", "ALL_TARGET_DEBUFFS", UnitDebuff, "HARMFUL")
+			
 			check(unit, ":buff:", "MY_TARGET_BUFFS", UnitBuff, "HELPFUL", "player")
 			check(unit, ":debuff:", "MY_DEBUFFS", UnitDebuff, "HARMFUL", "player")
 		elseif unit == "focus" then

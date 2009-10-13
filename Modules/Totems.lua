@@ -32,7 +32,7 @@ function mod:RefreshSlot(event, slot)
 	if name and name ~= "" then
 		local id = getTotemID(name, GetMultiCastTotemSpells(slot))
 		if id then
-			SexyCooldown:AddItem(uid, name, icon, start, duration, "TOTEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. id)
+			SexyCooldown:AddItem(uid, name, icon, start, duration, nil, "TOTEM_COOLDOWN", SexyCooldown.SHOW_HYPERLINK, "spell:" .. id)
 		end
 	else
 		SexyCooldown:RemoveItem(uid)

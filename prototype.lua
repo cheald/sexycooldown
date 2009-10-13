@@ -21,6 +21,25 @@ local function getPos(val, valMax, base)
 	return math_pow(val, base) / math_pow(valMax, base)
 end
 
+local function getAnchorOffset(anchor, x, y)
+	if anchor:match("TOP") then
+		y = -y
+	elseif anchor:match("BOTTOM") then
+		y = y
+	else
+		y = 0
+	end
+	
+	if anchor:match("LEFT") then
+		x = x
+	elseif anchor:match("RIGHT") then
+		x = -x
+	else
+		x = 0
+	end
+	return x, y
+end
+
 local delta = 0
 local throttle = 1 / 30
 local runOnUpdates = function(self, t)
@@ -66,6 +85,18 @@ function barPrototype:Init()
 	
 	-- self.animationTimer = self:CreateAnimationGroup()
 	-- self.animationTimerScript = self:CreateAnimation()
+	
+	for k, v in pairs(mod.barDefaults.events) do
+		if self.settings.events[k] == nil and v then
+			mod:RegisterBarForFilter(self, k)
+		end
+	end
+	
+	for k, v in pairs(self.settings.events) do
+		if v then
+			mod:RegisterBarForFilter(self, k)
+		end
+	end
 	
 	self:SetBackdrop(mod.backdrop)
 	if not self.settings.bar.x then
@@ -247,11 +278,27 @@ do
 		
 		self:UpdateLabel(icon.fs, self.settings.icon)
 		self:UpdateLabel(icon.overlay.fs, self.settings.icon)
+		self:UpdateLabel(icon.stacks, self.settings.icon)
+		self:UpdateLabel(icon.overlay.stacks, self.settings.icon)
+		
 		icon:SetWidth(self:GetDepth() + self.settings.icon.sizeOffset)
 		icon:SetHeight(self:GetDepth() + self.settings.icon.sizeOffset)		
 		
 		icon.overlay:SetWidth(icon:GetWidth())
 		icon.overlay:SetHeight(icon:GetHeight())
+		
+		local xoff, yoff
+		xoff, yoff = getAnchorOffset(self.settings.icon.stacksAnchor, self.settings.icon.stacksOffset, self.settings.icon.stacksOffset)
+		icon.stacks:ClearAllPoints()
+		icon.overlay.stacks:ClearAllPoints()
+		icon.stacks:SetPoint(self.settings.icon.stacksAnchor, icon, self.settings.icon.stacksAnchor, xoff, yoff)
+		icon.overlay.stacks:SetPoint(self.settings.icon.stacksAnchor, icon.overlay, self.settings.icon.stacksAnchor, xoff, yoff)
+
+		xoff, yoff = getAnchorOffset(self.settings.icon.timeAnchor, self.settings.icon.timeOffset, self.settings.icon.timeOffset)
+		icon.fs:ClearAllPoints()
+		icon.overlay.fs:ClearAllPoints()
+		icon.fs:SetPoint(self.settings.icon.timeAnchor, icon, self.settings.icon.timeAnchor, xoff, yoff)
+		icon.overlay.fs:SetPoint(self.settings.icon.timeAnchor, icon.overlay, self.settings.icon.timeAnchor, xoff, yoff)
 		
 		if self.settings.icon.showText then
 			icon.fs:Show()
@@ -259,6 +306,14 @@ do
 		else
 			icon.fs:Hide()
 			icon.overlay.fs:Hide()
+		end
+		
+		if self.settings.icon.showStacks then
+			icon.stacks:Show()
+			icon.overlay.stacks:Show()
+		else
+			icon.stacks:Hide()
+			icon.overlay.stacks:Hide()
 		end
 		
 		-- icon.finishScale.maxScale = self.settings.icon.splashScale
@@ -315,11 +370,12 @@ do
 		f.overlay.icon = f
 		f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
 		
-		f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
-		f.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
+		f.stacks = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
 		
+		f.fs = f:CreateFontString(nil, nil, "SystemFont_Outline_Small")
+		
+		f.overlay.stacks = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
 		f.overlay.fs = f.overlay:CreateFontString(nil, nil, "SystemFont_Outline_Small")
-		f.overlay.fs:SetPoint("BOTTOMRIGHT", f.overlay, "BOTTOMRIGHT", -1, 2)
 		
 		f.overlay:SetScript("OnEnter", f.ShowTooltip)
 		f.overlay:SetScript("OnLeave", f.HideTooltip)
@@ -371,8 +427,7 @@ do
 		local throbScale = 0.5
 		f.throb = f.overlay:CreateAnimationGroup()
 		f.throb[1] = f.throb:CreateAnimation()
-		-- f.throb[1]:SetScale(throbScale, throbScale)
-		f.throb[1]:SetDuration(0.1)
+		f.throb[1]:SetDuration(0.05)
 		f.throb[1]:SetEndDelay(0.1)
 		f.throb[1]:SetOrder(1)
 		f.throb[1]:SetScript("OnUpdate", function(self)
@@ -383,7 +438,6 @@ do
 		end)
 
 		f.throb[2] = f.throb:CreateAnimation()
-		-- f.throb[2]:SetScale(1 / throbScale, 1 / throbScale)
 		f.throb[2]:SetDuration(0.35)
 		f.throb[2]:SetOrder(2)
 		f.throb[2]:SetScript("OnUpdate", function(self)
@@ -420,7 +474,7 @@ do
 		end
 	end
 	
-	function barPrototype:CreateCooldown(uid, name, icon, startTime, duration, filter, callback, ...)
+	function barPrototype:CreateCooldown(uid, name, icon, startTime, duration, stacks, filter, callback, ...)
 		if not filterValid(self, filter) then return end		
 		
 		if duration < self.settings.bar.minDuration or duration - (GetTime() - startTime) + 0.5 < self.settings.bar.minDuration then return end
@@ -466,6 +520,13 @@ do
 			f:Show()
 			self:Activate()
 		end
+		if stacks and stacks > 0 then
+			f.stacks:SetText(stacks)
+			f.overlay.stacks:SetText(stacks)
+		else
+			f.stacks:SetText(nil)
+			f.overlay.stacks:SetText(nil)
+		end		
 		f.filter = filter
 		f.tooltipCallback = callback
 		f.arg1, f.arg2, f.arg3, f.arg4 = ...
@@ -680,8 +741,14 @@ function barPrototype:Expire()
 		frame.pulse:Stop()
 		frame:Expire(true)
 	end
+	
+	for k, v in pairs(self.settings.events) do
+		mod:UnregisterBarForFilter(self, k)
+	end
+	
 	wipe(self.cooldowns)
 	self:Hide()
+	self.splashAnchor:SetParent(self)
 	self.splashAnchor:Hide()
 end
 

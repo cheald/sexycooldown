@@ -16,7 +16,6 @@ local pairs, ipairs, next = _G.pairs, _G.ipairs, _G.next
 local tremove, tinsert = _G.tremove, _G.tinsert
 local type, rawset, rawget = _G.type, _G.rawset, _G.rawget
 
-local activeFilters = {}
 local defaults = {
 	profile = {
 		bars = {}
@@ -140,38 +139,46 @@ function mod:ReloadAddon()
 end
 
 local filterToMod = {}
-function mod.RegisterFilter(module, filter, name, description)
+function mod.RegisterFilter(module, filter, name, description, order)
 	filterToMod[filter] = module
 	local modname = module:GetName():gsub(" ", "_")
 	mod.eventArgs[modname] = mod.eventArgs[modname] or {
 		type = "group",
 		inline = true,
 		name = module:GetName(),
-		args = {}
+		args = {}		
 	}
 	mod.eventArgs[modname].args[filter] = {
 		type = "toggle",
 		name = name,
-		desc = description
+		desc = description,
+		order = order
 	}
 end
 
-function mod:RegisterBarForFilter(filter)
-	activeFilters[filter] = (activeFilters[filter] or 0) + 1	
-end
-
-function mod:UnregisterBarForFilter(filter)
-	if activeFilters[filter] then
-		activeFilters[filter] = activeFilters[filter] - 1	
-	else
-		error(("%s is not a registered filter type"):format(filter))
+do
+	local filterRegistrations = {}
+	local activeFilters = {}
+	local function updateFilterActive(filter)
+		activeFilters[filter] = next(filterRegistrations[filter]) and 1 or 0
 	end
-end
 
--- Todo
-function mod:IsFilterRegistered(filter)
-	do return true end
-	return activeFilters[filter] and activeFilters[filter] > 0
+	function mod:RegisterBarForFilter(bar, filter)
+		filterRegistrations[filter] = filterRegistrations[filter] or {}
+		filterRegistrations[filter][bar] = true
+		updateFilterActive(filter)
+	end
+
+	function mod:UnregisterBarForFilter(bar, filter)
+		if filterRegistrations[filter] then
+			filterRegistrations[filter][bar] = nil
+			updateFilterActive(filter)
+		end
+	end
+
+	function mod:IsFilterRegistered(filter)
+		return activeFilters[filter] and activeFilters[filter] > 0
+	end
 end
 
 -- For 0.6.2 to 0.6.3
@@ -298,9 +305,9 @@ function mod:Refresh(filter)
 	end
 end
 
-function mod:AddItem(uid, name, icon, start, duration, filter, callback, ...)
+function mod:AddItem(uid, name, icon, start, duration, stacks, filter, callback, ...)
 	for _, frame in ipairs(frames) do
-		frame:CreateCooldown(uid, name, icon, start, duration, filter, callback, ...)
+		frame:CreateCooldown(uid, name, icon, start, duration, stacks, filter, callback, ...)
 	end
 end
 
