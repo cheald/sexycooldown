@@ -161,11 +161,6 @@ function barPrototype:Init()
 	
 	self.splashAnchor:SetBackdrop(backdrop)
 	self.splashAnchor:SetBackdropColor(0, 1, 0, 1)
-	if self.settings.bar.splash_x then
-		self.splashAnchor:SetPoint("CENTER", UIParent, "BOTTOMLEFT", self.settings.bar.splash_x, self.settings.bar.splash_y)
-	else
-		self.splashAnchor:SetPoint("CENTER", self, getAnchorSide(self))
-	end
 	self.splashAnchor:SetWidth(35)
 	self.splashAnchor:SetHeight(35)
 	self.splashAnchor:EnableMouse(true)	
@@ -186,8 +181,11 @@ function barPrototype:Init()
 	end)
 	self.splashAnchor.close = close;
 	
-	self.splashAnchor.lock = function(self, lock)
-		if lock then
+	self.splashAnchor.lock = function(self, lock, override)
+		if lock ~= nil then
+			self.locked = lock
+		end
+		if lock and not override then
 			self.close:Hide()
 			self:EnableMouse(false)
 			self:SetBackdropColor(0,0,0,0)
@@ -334,13 +332,11 @@ do
 		
 		f.finishScale = f.finish:CreateAnimation("Scale")		
 		f.finish:SetScript("OnPlay", function()
-			f:SetParent(UIParent)
-			if f.parent.settings.bar.splash_x then
-				f:SetParent(self.splashAnchor)
-				f:ClearAllPoints()
-				f:SetPoint("CENTER")
-				f:EnableMouse(false)
-			end
+			f:SetParent(self.splashAnchor)
+			f:ClearAllPoints()
+			f:SetPoint("CENTER", f.parent.splashAnchor, "CENTER", 0, 0)
+			f.overlay:EnableMouse(false)
+			
 			f.overlay:Hide()
 			f.fs:Hide()
 		end)
@@ -443,9 +439,9 @@ do
 			f.name = name
 			f.icon = icon
 			
-			if f.finish:IsPlaying() then f.finish:Stop() end
-			if f.throb:IsPlaying() then f.throb:Stop() end
-			if f.pulse:IsPlaying() then f.pulse:Stop() end
+			f.finish:Stop()
+			f.throb:Stop()
+			f.pulse:Stop()
 			
 			f.overlay:Show()
 			f:SetAlpha(1)	
@@ -632,7 +628,9 @@ function barPrototype:UpdateBarLook()
 	self:SetWidth(self:Vertical() and self.settings.bar.height or self.settings.bar.width)
 	self:SetHeight(self:Vertical() and self.settings.bar.width or self.settings.bar.height)
 	
-	if not self.settings.bar.splash_x then
+	if self.settings.bar.splash_x then
+		self.splashAnchor:SetPoint("CENTER", UIParent, "BOTTOMLEFT", self.settings.bar.splash_x, self.settings.bar.splash_y)
+	else
 		self.splashAnchor:SetPoint("CENTER", self, getAnchorSide(self))
 	end
 	
@@ -647,7 +645,11 @@ function barPrototype:UpdateBarLook()
 		self:EnableMouse(true)
 	end
 	
-	if not self.active then
+	self.splashAnchor:lock(self.splashAnchor.locked, mod.overrideLocks)
+	
+	if mod.overrideLocks then
+		self:SetAlpha(1)
+	elseif not self.active then
 		self:SetAlpha(self.settings.bar.inactiveAlpha)
 	end
 end
@@ -673,9 +675,9 @@ function barPrototype:Expire()
 	end
 	
 	for _, frame in ipairs(self.usedFrames) do
-		if frame.finish:IsPlaying() then frame.finish:Stop() end
-		if frame.throb:IsPlaying() then frame.throb:Stop() end
-		if frame.pulse:IsPlaying() then frame.pulse:Stop() end	
+		frame.finish:Stop()
+		frame.throb:Stop()
+		frame.pulse:Stop()
 		frame:Expire(true)
 	end
 	wipe(self.cooldowns)
@@ -753,7 +755,7 @@ function cooldownPrototype:Expire(noanimate)
 	end
 	
 	if self.pulse:IsPlaying() then self.pulse:Stop() end
-	if noanimate then
+	if noanimate and self.endTime - GetTime() > 1 then
 		self:Hide()
 	else
 		self.finish:Play()
