@@ -252,6 +252,9 @@ do
 		icon:SetWidth(self:GetDepth() + self.settings.icon.sizeOffset)
 		icon:SetHeight(self:GetDepth() + self.settings.icon.sizeOffset)		
 		
+		icon.overlay:SetWidth(icon:GetWidth())
+		icon.overlay:SetHeight(icon:GetHeight())
+		
 		if self.settings.icon.showText then
 			icon.fs:Show()
 			icon.overlay.fs:Show()
@@ -307,7 +310,10 @@ do
 		f.tex = f:CreateTexture(nil, "ARTWORK")
 
 		f.overlay = CreateFrame("Frame", nil, f)
-		f.overlay:SetAllPoints()
+		f.overlay:SetPoint("CENTER")
+		-- f.overlay:SetPoint("TOPLEFT")		
+		-- f.overlay:SetPoint("BOTTOMRIGHT")
+		
 		f.overlay.icon = f
 		f.overlay.tex = f.overlay:CreateTexture(nil, "ARTWORK")
 		
@@ -366,29 +372,40 @@ do
 			end
 		end)
 		
-		local throbScale = 1.6
-		f.throb = f:CreateAnimationGroup()
-		f.throb[1] = f.throb:CreateAnimation("Scale")
-		f.throb[1]:SetScale(throbScale, throbScale)
+		local throbScale = 0.5
+		f.throb = f.overlay:CreateAnimationGroup()
+		f.throb[1] = f.throb:CreateAnimation()
+		-- f.throb[1]:SetScale(throbScale, throbScale)
 		f.throb[1]:SetDuration(0.1)
-		f.throb[1]:SetEndDelay(0.25)
+		f.throb[1]:SetEndDelay(0.1)
 		f.throb[1]:SetOrder(1)
+		f.throb[1]:SetScript("OnUpdate", function(self)
+			local p = self:GetRegionParent()
+			p:SetFrameLevel(128)
+			p:SetAlpha(1)
+			self:GetRegionParent():SetScale(1 + (throbScale * self:GetProgress()))
+		end)
 
-		f.throb[2] = f.throb:CreateAnimation("Scale")
-		f.throb[2]:SetScale(1 / throbScale, 1 / throbScale)
-		f.throb[2]:SetDuration(0.1)
+		f.throb[2] = f.throb:CreateAnimation()
+		-- f.throb[2]:SetScale(1 / throbScale, 1 / throbScale)
+		f.throb[2]:SetDuration(0.35)
 		f.throb[2]:SetOrder(2)
+		f.throb[2]:SetScript("OnUpdate", function(self)
+			local p = self:GetRegionParent()
+			p:SetFrameLevel(128)
+			p:SetAlpha(1)
+			p:SetScale(1 + (throbScale * (1 - self:GetProgress())))
+		end)
 		
 		f.throb:SetScript("OnPlay", function()
-			f.overlay:Hide()
-			f.origFrameLevel = f.origFrameLevel or f:GetFrameLevel()
-			f:SetFrameLevel(128)
+			f.overlayFrameLevel = f.overlayFrameLevel or f.overlay:GetFrameLevel()
+			f.overlay:SetFrameLevel(128)
 		end)
 		f.throb:SetScript("OnStop", function()
-			f.overlay:Show()
-			if f.origFrameLevel then
-				f:SetFrameLevel(f.origFrameLevel)
-				f.origFrameLevel = nil
+			f.overlay:SetScale(1)
+			if f.overlayFrameLevel then
+				f.overlay:SetFrameLevel(f.overlayFrameLevel)
+				f.overlayFrameLevel = nil
 			end
 		end)
 		f.throb:SetScript("OnFinished", f.throb:GetScript("OnStop"))
@@ -481,12 +498,9 @@ do
 	end
 	
 	function barPrototype:CastFailure(uid)
-		for _, v in ipairs(self.usedFrames) do
-			if v.uid == uid and v.endTime - GetTime() > 0.3 then
-				if not v.throb:IsPlaying() then
-					v.throb:Play()
-				end
-			end
+		local f = self.cooldowns[uid]
+		if f and f.endTime - GetTime() > 0.3 and not f.throb:IsPlaying() then
+			f.throb:Play()
 		end
 	end
 end
