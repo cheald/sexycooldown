@@ -4,6 +4,8 @@ local LSM = LibStub("LibSharedMedia-3.0")
 local mod = SexyCooldown
 local _G = getfenv(0)
 
+CONFIGMODE_CALLBACKS = CONFIGMODE_CALLBACKS or {}
+
 local GetInventoryItemCooldown = _G.GetInventoryItemCooldown
 local GetInventoryItemLink = _G.GetInventoryItemLink
 local GetContainerItemCooldown = _G.GetContainerItemCooldown
@@ -317,5 +319,16 @@ end
 function mod.SHOW_HYPERLINK(frame, link)
 	if link then
 		GameTooltip:SetHyperlink(link)
+	end
+end
+
+CONFIGMODE_CALLBACKS.SexyCooldown = function(action)
+	if action == "ON" then
+		mod.overrideLocks = true
+	elseif action == "OFF" then
+		mod.overrideLocks = false
+	end
+	for k, v in ipairs(frames) do
+		v:UpdateLook()
 	end
 end

@@ -625,7 +625,7 @@ function barPrototype:UpdateBarLook()
 	self:SetLabels()
 	self:SetBarFont()
 	self:UpdateBarBackdrop()
-	if self.settings.bar.lock then
+	if self.settings.bar.lock and not mod.overrideLocks then
 		self.grip:Hide()
 		self:EnableMouse(false)
 	else
