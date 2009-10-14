@@ -5,32 +5,39 @@ local spellTip = CreateFrame("GameTooltip", "SexyCooldownAurasTip", UIParent, "G
 
 function mod:OnInitialize()	
 	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
-		L["Buffs on me"], 		
-		L["Show the duration of buffs on me on this bar"], 1)		
+		L["All buffs on me"], 		
+		L["Show the duration of buffs on me on this bar"])
 	SexyCooldown.RegisterFilter(self, "DEBUFFS_ON_ME",
-		L["Debuffs on me"],
-		L["Show the duration of debuffs on me on this bar"], 2)
+		L["All debuffs on me"],
+		L["Show the duration of my debuffs on me on this bar"])
 		
+	SexyCooldown.RegisterFilter(self, "MY_BUFFS_ON_ME", 
+		L["My buffs on me"], 		
+		L["Show the duration of my buffs on me on this bar"])		
+	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS_ON_ME",
+		L["My debuffs on me"],
+		L["Show the duration of debuffs on me on this bar"])		
+		
+	SexyCooldown.RegisterFilter(self, "MY_FOCUS_BUFFS", 
+		L["My focus buffs"], 
+		L["Show the duration of my buffs on my focus on this bar"])
 	SexyCooldown.RegisterFilter(self, "MY_FOCUS_DEBUFFS", 
 		L["My focus debuffs"], 
-		L["Show the duration of my debuffs on my focus on this bar"], 4)
-	SexyCooldown.RegisterFilter(self, "MY_FOCUS_BUFFS", 
-		L["My focus debuffs"], 
-		L["Show the duration of my buffs on my focus on this bar"], 3)
+		L["Show the duration of my debuffs on my focus on this bar"])
 		
-	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
-		L["My target debuffs"], 
-		L["Show the duration of my debuffs on my target on this bar"], 6)
 	SexyCooldown.RegisterFilter(self, "MY_TARGET_BUFFS", 
 		L["My target buffs"], 
-		L["Show the duration of my buffs on my target on this bar"], 5)
+		L["Show the duration of my buffs on my target on this bar"])
+	SexyCooldown.RegisterFilter(self, "MY_DEBUFFS", 
+		L["My target debuffs"], 
+		L["Show the duration of my debuffs on my target on this bar"])
 
-	SexyCooldown.RegisterFilter(self, "ALL_TARGET_DEBUFFS", 
-		L["All target debuffs"], 
-		L["Show the duration of all debuffs on my target on this bar"], 8)
 	SexyCooldown.RegisterFilter(self, "ALL_TARGET_BUFFS", 
 		L["All target buffs"], 
-		L["Show the duration of all buffs on my target on this bar"], 7)
+		L["Show the duration of all buffs on my target on this bar"])
+	SexyCooldown.RegisterFilter(self, "ALL_TARGET_DEBUFFS", 
+		L["All target debuffs"], 
+		L["Show the duration of all debuffs on my target on this bar"])
 end
 
 function mod:OnEnable()
@@ -99,6 +106,9 @@ do
 		if unit == "player" then
 			check(unit, "buff", "BUFFS_ON_ME", UnitBuff, "HELPFUL")
 			check(unit, "debuff", "DEBUFFS_ON_ME", UnitDebuff, "HARMFUL")
+			
+			check(unit, "buff", "MY_BUFFS_ON_ME", UnitBuff, "HELPFUL", "player")
+			check(unit, "debuff", "MY_DEBUFFS_ON_ME", UnitDebuff, "HARMFUL", "player")
 		elseif unit == "target" then
 			check(unit, "buff", "ALL_TARGET_BUFFS", UnitBuff, "HELPFUL")
 			check(unit, "debuff", "ALL_TARGET_DEBUFFS", UnitDebuff, "HARMFUL")

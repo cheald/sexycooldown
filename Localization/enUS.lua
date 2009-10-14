@@ -14,21 +14,25 @@ L["Profiles"] = true
 -- no localization
 
 -- ./Modules/Auras.lua
-L["Buffs on me"] = true
+L["All buffs on me"] = true
 L["Show the duration of buffs on me on this bar"] = true
-L["Debuffs on me"] = true
+L["All debuffs on me"] = true
+L["Show the duration of my debuffs on me on this bar"] = true
+L["My buffs on me"] = true
+L["Show the duration of my buffs on me on this bar"] = true
+L["My debuffs on me"] = true
 L["Show the duration of debuffs on me on this bar"] = true
 L["My focus debuffs"] = true
-L["Show the duration of my debuffs on my focus on this bar"] = true
 L["Show the duration of my buffs on my focus on this bar"] = true
-L["My target debuffs"] = true
-L["Show the duration of my debuffs on my target on this bar"] = true
+L["Show the duration of my debuffs on my focus on this bar"] = true
 L["My target buffs"] = true
 L["Show the duration of my buffs on my target on this bar"] = true
-L["All target debuffs"] = true
-L["Show the duration of all debuffs on my target on this bar"] = true
+L["My target debuffs"] = true
+L["Show the duration of my debuffs on my target on this bar"] = true
 L["All target buffs"] = true
 L["Show the duration of all buffs on my target on this bar"] = true
+L["All target debuffs"] = true
+L["Show the duration of all debuffs on my target on this bar"] = true
 
 -- ./Modules/Items.lua
 L["Items"] = true

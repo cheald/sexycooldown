@@ -139,9 +139,12 @@ function mod:ReloadAddon()
 end
 
 local filterToMod = {}
-function mod.RegisterFilter(module, filter, name, description, order)
+local filterOrders = {}
+function mod.RegisterFilter(module, filter, name, description)
 	filterToMod[filter] = module
 	local modname = module:GetName():gsub(" ", "_")
+	filterOrders[modname] = (filterOrders[modname] or 0) + 1
+	
 	mod.eventArgs[modname] = mod.eventArgs[modname] or {
 		type = "group",
 		inline = true,
@@ -152,7 +155,7 @@ function mod.RegisterFilter(module, filter, name, description, order)
 		type = "toggle",
 		name = name,
 		desc = description,
-		order = order
+		order = filterOrders[modname]
 	}
 end
 
