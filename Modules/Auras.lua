@@ -94,6 +94,8 @@ do
 	end
 
 	function mod:UpdateUnit(unit)
+		if unit ~= "player" and unit ~= "target" and unit ~= "focus" then return end
+		
 		wipe(tmp)
 		existingBuffs[unit] = existingBuffs[unit] or {}	
 		local buffs = existingBuffs[unit]
