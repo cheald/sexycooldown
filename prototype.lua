@@ -104,7 +104,7 @@ function barPrototype:Init()
 	end
 	
 	self:SetScript("OnMouseDown", function(self)
-		if not self.settings.bar.lock then
+		if not self.settings.bar.lock or mod.overrideLocks then
 			self:StartMoving()
 		end
 	end)
@@ -592,8 +592,9 @@ function barPrototype:SetLabel(val)
 	local l = self:CreateLabel(self)
 	local depth = self:GetDepth() / 2
 	local pos = getPos(val, self:GetTimeMax(), self.settings.bar.time_compression) * (self:GetLength() - depth)
-	if pos + l:GetWidth() > self:GetLength() then
-		pos = self:GetLength() - l:GetWidth()
+	local lw = self:Vertical() and l:GetHeight() or l:GetWidth()
+	if pos + lw > self:GetLength() then
+		pos = self:GetLength() - lw
 	end
 	if self:Vertical() then
 		l:SetPoint("CENTER", self, getAnchorSide(self), 0, pos * (self:Reversed() and -1 or 1))

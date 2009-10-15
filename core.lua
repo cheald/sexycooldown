@@ -85,7 +85,7 @@ local function isSlashCommandRegistered(command)
 end
 
 function mod:OnInitialize()
-	self:UpdateBarDB()
+	-- self:UpdateBarDB()
 	
 	self.db = LibStub("AceDB-3.0"):New("SexyCooldownDB", defaults)
 	self.db.global.dbVersion = 3
