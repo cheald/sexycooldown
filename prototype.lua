@@ -529,6 +529,11 @@ do
 			tinsert(self.usedFrames, f)
 			f:Show()
 			self:Activate()
+			
+			-- Only set this on button acquire. Otherwise, filters that are a superset of another filter set (all buffs, my buffs) might
+			-- get "popping" between border colors. Once an icon has been created by a filter, we'll assume that UID is owned by that filter
+			-- type until the icon expires.
+			f.filter = filter
 		end
 		f.name = name
 		f.icon = icon
@@ -541,7 +546,6 @@ do
 			f.overlay.stacks:SetText(nil)
 		end		
 		f.tooltipCallback = callback
-		f.filter = filter
 		f.arg1, f.arg2, f.arg3, f.arg4 = ...
 		f.endTime = startTime + duration
 		f.startTime = startTime
