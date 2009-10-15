@@ -25,10 +25,15 @@ local function getTotemID(name, ...)
 	return nil
 end
 
+local usedSlots = {}
 function mod:RefreshSlot(event, slot)
 	local haveTotem, name, start, duration, icon = GetTotemInfo(slot);
 	
-	local uid = "totem:" .. slot
+	local uid = "totem:" .. slot .. ":" .. name
+	if usedSlots[slot] and usedSlots[slot] ~= uid then
+		SexyCooldown:RemoveItem(usedSlots[slot])
+	end
+	usedSlots[slot] = uid
 	if name and name ~= "" then
 		local id = getTotemID(name, GetMultiCastTotemSpells(slot))
 		if id then

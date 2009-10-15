@@ -490,9 +490,6 @@ do
 				f = tremove(framePool)
 			end
 			
-			f.name = name
-			f.icon = icon
-			
 			f.finish:Stop()
 			f.throb:Stop()
 			f.pulse:Stop()
@@ -514,12 +511,15 @@ do
 			self.durations[f.uid] = duration
 			
 			f.parent = self			
-			f:SetCooldownTexture(icon)			
-			self:UpdateSingleIconLook(f)
 			tinsert(self.usedFrames, f)
 			f:Show()
 			self:Activate()
 		end
+		f.name = name
+		f.icon = icon
+		f:SetCooldownTexture(icon)			
+		self:UpdateSingleIconLook(f)
+		
 		if stacks and stacks > 0 then
 			f.stacks:SetText(stacks)
 			f.overlay.stacks:SetText(stacks)
