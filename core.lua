@@ -149,13 +149,36 @@ function mod.RegisterFilter(module, filter, name, description)
 		type = "group",
 		inline = true,
 		name = module:GetName(),
-		args = {}		
+		args = {}
 	}
 	mod.eventArgs[modname].args[filter] = {
 		type = "toggle",
 		name = name,
 		desc = description,
 		order = filterOrders[modname]
+	}
+	
+	mod.eventColors[modname] = mod.eventColors[modname] or {
+		type = "group",
+		inline = true,
+		name = module:GetName(),
+		args = {
+			reset = {
+				type = "execute",
+				name = L["Reset to defaults"],
+				desc = L["Reset all colors in this group to the icon defaults"],
+				width = "full",
+				func = "resetColors",
+				order = 999
+			}
+		}
+	}
+	
+	mod.eventColors[modname].args[filter] = {
+		type = "color",
+		name = name,
+		desc = description,
+		order = filterOrders[modname] * 2,
 	}
 end
 

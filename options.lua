@@ -80,10 +80,11 @@ mod.barDefaults = {
 		INTERNAL_SPELL_COOLDOWN = true,
 		INTERNAL_ITEM_COOLDOWN = true,
 		TOTEM_COOLDOWN = true
-	}
+	},
+	eventColors = {}
 }
 
-mod.eventArgs = {}
+mod.eventArgs, mod.eventColors = {}, {}
 
 function mod:GetOptionsTable(frame)
 	local db = frame.settings
@@ -643,6 +644,13 @@ function mod:GetOptionsTable(frame)
 			get = "getEvents",
 			set = "setEvents",
 			args = mod.eventArgs
+		},
+		eventColors = {
+			type = "group",
+			name = L["Event Colors"],
+			get = "getEventColors",
+			set = "setEventColors",
+			args = mod.eventColors
 		}
 	}
 
@@ -687,6 +695,25 @@ function mod:GetOptionsTable(frame)
 			mod:UnregisterBarForFilter(frame, info[#info])
 		end
 		mod:Refresh(info[#info])
+	end
+	
+	handlers.getEventColors = function(self, info)
+		local t = db.eventColors[info[#info]] or db.icon.borderColor
+		return t.r, t.g, t.b, t.a
+	end	
+	
+	handlers.setEventColors = function(self, info, r, g, b, a)
+		if info.type == "color" then
+			local t = db.eventColors[info[#info]] or {}
+			db.eventColors[info[#info]] = db.eventColors[info[#info]] or t
+			t.r, t.g, t.b, t.a = r, g, b, a
+		end
+		frame:UpdateLook()
+	end
+	
+	handlers.resetColors = function(self)
+		db.eventColors = {}
+		frame:UpdateLook()
 	end
 	
 	handlers.setName = function(self, info, value)

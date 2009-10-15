@@ -9,6 +9,8 @@ L["Select an options sub-category to get started."] = true
 L["Bars"] = true
 L["Create new bar"] = true
 L["Profiles"] = true
+L["Reset to defaults"] = true
+L["Reset all colors in this group to the icon defaults"] = true
 
 -- ./loadstub.lua
 -- no localization
@@ -153,6 +155,7 @@ L["/!\\ Delete This Bar /!\\"] = true
 L["Permanently delete this bar."] = true
 L["Are you sure you want to delete this bar?"] = true
 L["Event Types"] = true
+L["Event Colors"] = true
 
 -- ./prototype.lua
 -- no localization

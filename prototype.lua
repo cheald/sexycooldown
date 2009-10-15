@@ -272,7 +272,8 @@ do
 		
 		icon:SetBackdrop(backdrop)
 		icon.overlay:SetBackdrop(backdrop)
-		local c = self.settings.icon.borderColor
+		
+		local c = icon.filter and self.settings.eventColors[icon.filter] or self.settings.icon.borderColor
 		icon:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
 		icon.overlay:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
 		
@@ -531,8 +532,6 @@ do
 		end
 		f.name = name
 		f.icon = icon
-		f:SetCooldownTexture(icon)			
-		self:UpdateSingleIconLook(f)
 		
 		if stacks and stacks > 0 then
 			f.stacks:SetText(stacks)
@@ -541,14 +540,18 @@ do
 			f.stacks:SetText(nil)
 			f.overlay.stacks:SetText(nil)
 		end		
-		f.filter = filter
 		f.tooltipCallback = callback
+		f.filter = filter
 		f.arg1, f.arg2, f.arg3, f.arg4 = ...
 		f.endTime = startTime + duration
 		f.startTime = startTime
 		f.duration = duration
 		self:SetMaxDuration()
 		f.lastOverlapCheck = 0
+
+		f:SetCooldownTexture(icon)			
+		self:UpdateSingleIconLook(f)
+		
 		f:ClearAllPoints()
 		f:UpdateTime()
 		activateFrame(self)
