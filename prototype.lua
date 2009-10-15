@@ -300,6 +300,10 @@ do
 		icon.fs:SetPoint(self.settings.icon.timeAnchor, icon, self.settings.icon.timeAnchor, xoff, yoff)
 		icon.overlay.fs:SetPoint(self.settings.icon.timeAnchor, icon.overlay, self.settings.icon.timeAnchor, xoff, yoff)
 		
+		icon.pulseAlpha:SetDuration(self.settings.icon.pulseSpeed)
+		icon.pulseAlpha:SetEndDelay(self.settings.icon.pulseSpeed)
+		icon.pulseAlpha:SetStartDelay(self.settings.icon.pulseSpeed)		
+		
 		if self.settings.icon.showText then
 			icon.fs:Show()
 			icon.overlay.fs:Show()
@@ -321,7 +325,7 @@ do
 		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
 		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed * 1.2)
 		
-		if self.settings.icon.disableTooltip then
+		if self.settings.icon.disableMouse then
 			icon.overlay:EnableMouse(false)
 		else
 			icon.overlay:EnableMouse(true)
@@ -380,7 +384,6 @@ do
 		f.overlay:SetScript("OnEnter", f.ShowTooltip)
 		f.overlay:SetScript("OnLeave", f.HideTooltip)
 		f.overlay:SetScript("OnMouseUp", onClick)
-		f.overlay:EnableMouse(true)
 		
 		f.finish = f:CreateAnimationGroup()
 		f.finishAlpha = f.finish:CreateAnimation("Alpha")
@@ -412,16 +415,26 @@ do
 		f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
 		f.pulseAlpha:SetMaxFramerate(30)
 		f.pulseAlpha:SetChange(-1)
-		f.pulseAlpha:SetDuration(0.4)
-		f.pulseAlpha:SetEndDelay(0.4)
-		f.pulseAlpha:SetStartDelay(0.4)
-		f.pulse:SetScript("OnLoop", function(self, loopState)
-			if loopState == "FORWARD" then
-				f.pulseFrameLevel = f:GetFrameLevel()
-				f:SetFrameLevel(8)
-			elseif f.pulseFrameLevel then
-				f:SetFrameLevel(f.pulseFrameLevel)
+		-- f.pulse:SetScript("OnLoop", function(self, loopState)
+			-- print(loopState)
+			-- if loopState == "FORWARD" then
+				-- print("Disabling mouse on", f.name)
+				-- f.overlay:EnableMouse(false)
+			-- else
+				-- print("Enabling mouse on", f.name, tostring(not f.parent.settings.disableMouse))
+				-- f.overlay:EnableMouse(not f.parent.settings.disableMouse)
+			-- end
+		-- end)
+		f.pulse:SetScript("OnUpdate", function(self)
+			local s, p = f.pulse:GetLoopState(), self:GetProgress()
+			if s == "FORWARD" and p >= 0.5 then
+				f.overlay:EnableMouse(false)
+			elseif s == "REVERSE" and p >= 0.5 then
+				f.overlay:EnableMouse(not f.parent.settings.disableMouse)
 			end
+		end)
+		f.pulse:SetScript("OnStop", function(self)
+			f.overlay:EnableMouse(not f.parent.settings.disableMouse)
 		end)
 		
 		local throbScale = 0.5
@@ -501,6 +514,7 @@ do
 			f:SetParent(self)
 			
 			f:SetFrameLevel(framelevelSerial)
+			f.nativeFrameLevel = framelevelSerial
 			f.overlay:SetFrameLevel(framelevelSerial + 60)
 			framelevelSerial = framelevelSerial + 5
 			if framelevelSerial > 60 then
@@ -771,7 +785,7 @@ function barPrototype:CheckOverlap(current)
 			if (ir >= l and ir <= r) or (il >= l and il <= r) then
 				local overlap = math_min(math_abs(ir - l), math_abs(il - r))
 				if overlap >= 0 then				
-					local frame = icon:GetFrameLevel() > current:GetFrameLevel() and icon or current
+					local frame = icon.nativeFrameLevel > current.nativeFrameLevel and icon or current
 					if not frame.pulse:IsPlaying() then
 						frame.pulse:Play()
 					end
@@ -798,7 +812,7 @@ end
 
 function cooldownPrototype:ShowTooltip()
 	local icon = self.icon
-	if not icon.tooltipCallback then 
+	if not icon.tooltipCallback or icon.parent.settings.icon.disableTooltip then 
 		return
 	end
 	GameTooltip:SetOwner(icon, "ANCHOR_CURSOR")

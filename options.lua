@@ -70,7 +70,8 @@ mod.barDefaults = {
 		stacksAnchor = "TOPLEFT",
 		timeAnchor = "BOTTOMRIGHT",
 		stacksOffset = 2,
-		timeOffset = 2
+		timeOffset = 2,
+		pulseSpeed = 0.4
 	},
 	events = {
 		SPELL_COOLDOWN = true,
@@ -350,7 +351,25 @@ function mod:GetOptionsTable(frame)
 				disableTooltip = {
 					type = "toggle",
 					name = L["Disable tooltips"],
-					desc = L["Don't show item or spell tooltips when you hover over their icons on the bar."]
+					desc = L["Don't show item or spell tooltips when you hover over their icons on the bar."],
+					disabled = function()
+						return db.icon.disableMouse
+					end
+				},
+				disableMouse = {
+					type = "toggle",
+					name = L["Disable mouse"],
+					desc = L["Don't allow mouse interaction with icons. If you turn this off, you won't be able to blacklist items."]
+				},
+				pulseSpeed = {
+					type = "range",
+					name = L["Pulse speed"],
+					desc = L["Speed to pulse overlapping icons"],
+					min = 0.1,
+					max = 2.0,
+					step = 0.01,
+					bigStep = 0.1,
+					order = 17
 				}
 			}
 		},
