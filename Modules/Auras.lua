@@ -43,6 +43,7 @@ end
 function mod:OnEnable()
 	self:RegisterBucketEvent("UNIT_AURA", 0.1, "UNIT_AURA")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED", "Refresh")
+	self:RegisterEvent("PLAYER_FOCUS_CHANGED", "Refresh")	
 	self:Refresh()
 end
 
