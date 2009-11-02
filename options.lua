@@ -635,6 +635,13 @@ function mod:GetOptionsTable(frame)
 					confirmText = L["Are you sure you want to delete this bar?"],
 					order = 602,
 					hidden = showAdvanced
+				},
+				customTimings = {
+					type = "input",
+					name = L["Custom timings"],
+					desc = L["Specify a comma-delimited list of intervals to mark on the bar, in seconds. For example: 1,5,10,30,45,60,180"],
+					order = 702,
+					hidden = showAdvanced
 				}
 			}
 		},

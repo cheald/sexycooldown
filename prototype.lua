@@ -18,7 +18,8 @@ local stringPool = {}
 local updateFrames = {}
 
 local function getPos(val, valMax, base)
-	return math_pow(val, base) / math_pow(valMax, base)
+	local r = math_pow(val, base) / math_pow(valMax, base)
+	return r > 1 and 1 or r	
 end
 
 local function getAnchorOffset(anchor, x, y)
@@ -638,6 +639,18 @@ function barPrototype:SetLabels()
 		local l = tremove(self.usedStrings)
 		l:Hide()
 		tinsert(stringPool, l)
+	end
+	
+	if self.settings.bar.customTimings then
+		local labels = 0
+		for num in tostring(self.settings.bar.customTimings):gmatch("%d+") do
+			num = tonumber(num)
+			if num and num > 0 then
+				self:SetLabel(num)
+				labels = labels + 1
+			end
+		end
+		if labels > 0 then return end
 	end
 	
 	local minutes = math_floor(self:GetTimeMax() / 60)

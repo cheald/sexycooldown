@@ -154,12 +154,11 @@ L["Reset splash anchor to its default position."] = true
 L["/!\\ Delete This Bar /!\\"] = true
 L["Permanently delete this bar."] = true
 L["Are you sure you want to delete this bar?"] = true
+L["Custom timings"] = true
+L["Specify a comma-delimited list of intervals to mark on the bar, in seconds. For example: 1,5,10,30,45,60,180"] = true
 L["Event Types"] = true
 L["Event Colors"] = true
 
 -- ./prototype.lua
--- no localization
-
--- ./xprototype.lua
 -- no localization
 
