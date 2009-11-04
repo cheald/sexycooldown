@@ -623,11 +623,8 @@ function barPrototype:SetLabel(val)
 	else
 		l:SetPoint("CENTER", self, getAnchorSide(self), pos * (self:Reversed() and -1 or 1), 0)
 	end
-	if val > 3600 then
-		val = ("%2.0fh"):format(val / 3600)
-	elseif val >= 60 then
-		val = ("%2.0fm"):format(val / 60)
-	end	
+	local f = mod.displayFormatHandlers[self.settings.bar.timingDisplayFormat] or mod.displayFormatHandlers.TRUNCATED
+	val = f(val)	
 	l:SetText(val)
 end
 

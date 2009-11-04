@@ -27,6 +27,56 @@ local ANCHORS = {
 	BOTTOMRIGHT = L["Bottom right"]
 }
 
+local displayFormatHandlers = {
+	TRUNCATED = function(val)
+		if val >= 3600 then
+			if val % 3600 == 0 then
+				val = ("%2.0fh"):format(val / 3600)
+			else
+				val = ("%2.1fh"):format(val / 3600)
+			end
+		elseif val >= 60 then
+			if val % 60 == 0 then
+				val = ("%2.0fm"):format(val / 60)
+			else
+				val = ("%2.1fm"):format(val / 60)
+			end
+		end
+		return val		
+	end,
+	CLOCK = function(val)
+		if val >= 60 then
+			val = ("%2.0f:%02.0f"):format(val / 60, val % 60)
+		end
+		return val		
+	end,
+	CLOCK_LONG = function(val)
+		if val >= 60 then
+			val = ("%2.0f:%02.0f"):format(val / 60, val % 60)
+		else
+			val = ("0:%02.0f"):format(val % 60)
+		end
+		return val
+	end,
+	LITERAL = function(val)
+		return val
+	end
+}
+mod.displayFormatHandlers = displayFormatHandlers
+
+local TIMING_DISPLAY_FORMATS = {}
+local buff = {}
+local nums = {1, 30, 60, 90, 3600}
+
+for k, v in pairs(displayFormatHandlers) do
+	wipe(buff)
+	for _, val in ipairs(nums) do
+		tinsert(buff, v(val))
+	end
+	local s = table.concat(buff, ", ")
+	TIMING_DISPLAY_FORMATS[k] = s
+end
+
 mod.baseOptions = {
 	type = "group",
 	args = {}
@@ -52,7 +102,8 @@ mod.barDefaults = {
 		time_compression = 0.3,
 		x = 0,
 		y = -300,
-		orientation = "LEFT_TO_RIGHT"
+		orientation = "LEFT_TO_RIGHT",
+		timingDisplayFormat = "TRUNCATED"
 	},
 	icon = {
 		font = "Fritz Quadrata TT",
@@ -641,6 +692,14 @@ function mod:GetOptionsTable(frame)
 					name = L["Custom timings"],
 					desc = L["Specify a comma-delimited list of intervals to mark on the bar, in seconds. For example: 1,5,10,30,45,60,180"],
 					order = 702,
+					hidden = showAdvanced
+				},
+				timingDisplayFormat = {
+					type = "select",
+					name = L["Timings format"],
+					desc = L["Select the display format for timings"],
+					values = TIMING_DISPLAY_FORMATS,
+					order = 703,
 					hidden = showAdvanced
 				}
 			}
