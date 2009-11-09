@@ -135,7 +135,7 @@ function mod:ReloadAddon()
 	end
 	
 	self:Setup()
-	self:RefreshCooldowns()
+	self:Refresh()
 end
 
 local filterToMod = {}
