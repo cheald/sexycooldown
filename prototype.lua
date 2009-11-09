@@ -266,6 +266,7 @@ do
 		backdrop.edgeFile = LSM:Fetch("border", self.settings.icon.border) or backdrop.edgeFile
 		backdrop.edgeSize = self.settings.icon.borderSize or backdrop.edgeSize
 		
+		icon:SetClampedToScreen(self.settings.icon.clamp)
 		icon.tex:SetPoint("TOPLEFT", icon, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)
 		icon.tex:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -self.settings.icon.borderInset, self.settings.icon.borderInset)
 		icon.overlay.tex:SetPoint("TOPLEFT", icon.overlay, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)

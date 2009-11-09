@@ -78,6 +78,8 @@ L["Right-click an icon on a cooldown bar to blacklist it and prevent it from sho
 L["Blacklist"] = true
 L["Select an item to remove it from the blacklist."] = true
 L["Removed %s from the SexyCooldown blacklist"] = true
+L["Clamp to screen"] = true
+L["Prevent icons from running off the screen"] = true
 L["Cooldown Text"] = true
 L["Show Cooldown Text"] = true
 L["Show Stacks"] = true

@@ -209,6 +209,12 @@ function mod:GetOptionsTable(frame)
 					order = 11,
 					width = "full"
 				},
+				clamp = {
+					name = L["Clamp to screen"],
+					desc = L["Prevent icons from running off the screen"],
+					type = "toggle",
+					order = 13
+				},
 				fontHeader = {
 					name = L["Cooldown Text"],
 					desc = "Cooldown description",
@@ -486,7 +492,8 @@ function mod:GetOptionsTable(frame)
 					name = L["Max Time"],
 					desc = L["Max time to display, in seconds"],
 					min = 10,
-					max = 600,
+					max = 1800,
+					width = "full",
 					step = 1,
 					bigStep = 10,
 					order = 21
