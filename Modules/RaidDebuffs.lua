@@ -94,15 +94,15 @@ do
 			local debuffSlot = translatedDebuffs[s]
 			if debuffSlot then
 				local uid = debuffSlot .. ":" .. s
-				local remaining = expirationTime - duration
-				if remaining > (slotDebuffTimes[debuffSlot] or 0) then
-					slotDebuffTimes[debuffSlot] = remaining
+				if expirationTime > (slotDebuffTimes[debuffSlot] or 0) then
 					if slotDebuffs[debuffSlot] then
-						existingBuffs[uid] = nil
-						SexyCooldown:RemoveItem(slotDebuffs[debuffSlot])
+						local oldUID = slotDebuffs[debuffSlot]
+						existingBuffs[oldUID] = nil
+						removeBuffs[oldUID] = true
 					end
+					slotDebuffTimes[debuffSlot] = expirationTime
 					slotDebuffs[debuffSlot] = uid
-					SexyCooldown:AddItem(uid, name, icon, remaining, duration, count, debuffSlot, showBuffHyperlink, unit, index, "HARMFUL", classes[debuffSlot])
+					SexyCooldown:AddItem(uid, name, icon, expirationTime - duration, duration, count, debuffSlot, showBuffHyperlink, unit, index, "HARMFUL", classes[debuffSlot])
 					existingBuffs[uid] = true
 					removeBuffs[uid] = nil
 				end
