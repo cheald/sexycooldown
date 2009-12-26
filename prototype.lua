@@ -337,7 +337,11 @@ do
 	
 	local function onClick(self, button)
 		if button == "RightButton" then
-			self.icon:Blacklist()
+			if IsModifierKeyDown() then
+				self.icon:Blacklist()
+			else
+				self.icon:Cancel()
+			end
 		end
 	end
 	
@@ -920,4 +924,11 @@ function cooldownPrototype:Blacklist()
 	print(("|cff7777eeSexyCooldown|r Blacklisted |cffff0000%s|r from |cffff0000%s|r"):format(self.name, self.parent.settings.bar.name))
 	self.parent.settings.blacklist[self.uid] = self.name
 	self:Expire(true)
+end
+
+-- Sometimes this may not do anything if it's not a valid aura, but hey, we can try.
+function cooldownPrototype:Cancel()
+	if self.name then
+		CancelUnitBuff("player", self.name)
+	end
 end

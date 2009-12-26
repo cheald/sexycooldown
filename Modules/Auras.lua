@@ -1,8 +1,6 @@
 local mod = SexyCooldown:NewModule("Buffs and Debuffs", "AceEvent-3.0", "AceBucket-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 
-local spellTip = CreateFrame("GameTooltip", "SexyCooldownAurasTip", UIParent, "GameTooltipTemplate")
-
 function mod:OnInitialize()	
 	SexyCooldown.RegisterFilter(self, "BUFFS_ON_ME", 
 		L["All buffs on me"], 		

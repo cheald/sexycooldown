@@ -43,6 +43,17 @@ L["Show my item cooldowns on this bar"] = true
 L["Internal cooldowns"] = true
 L["Show internal cooldowns for my items and enchants on this bar."] = true
 
+-- ./Modules/RaidDebuffs.lua
+L["Bleed"] = true
+L["Major Armor"] = true
+L["Spell Hit"] = true
+L["Bleeds on Target"] = true
+L["Show the duration of bleeds on the target"] = true
+L["Major Armor Debuffs"] = true
+L["Show the duration of major armor debuffs on the target"] = true
+L["Spell Hit Debuffs"] = true
+L["Show the duration of +spell hit debuffs on the target"] = true
+
 -- ./Modules/Spells.lua
 L["My spells"] = true
 L["Show my spell cooldowns on this bar"] = true

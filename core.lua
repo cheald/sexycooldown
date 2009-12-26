@@ -252,12 +252,23 @@ function mod:CloneSettings(settings)
 	return bindToMetaTable(deepcopy(settings), self.barDefaults)
 end
 
+local usedNames = {}
 local barOptionsCount = 0
 function mod:CreateBar(settings, defaultName)
 	settings = settings or {}
 	bindToMetaTable(settings, self.barDefaults)
 	
-	local frame = setmetatable(CreateFrame("Frame", nil, UIParent), self.barMeta)
+	local name = settings.bar.name or defaultName
+	if not name then
+		name = "Bar " .. (#self.db.profile.bars)
+	end
+	
+	local frameName = "SexyCooldown" .. name
+	while usedNames[frameName] do
+		frameName = frameName .. ".1"
+	end
+	usedNames[frameName] = true
+	local frame = setmetatable(CreateFrame("Frame", frameName, UIParent), self.barMeta)
 	
 	local existing = false
 	for k, v in ipairs(self.db.profile.bars) do
@@ -271,10 +282,6 @@ function mod:CreateBar(settings, defaultName)
 		-- self.db:RegisterDefaults(defaults)
 	end	
 	
-	local name = settings.bar.name or defaultName
-	if not name then
-		name = "Bar " .. (#self.db.profile.bars)
-	end
 	settings.bar.name = name
 	
 	frame.settings = settings
