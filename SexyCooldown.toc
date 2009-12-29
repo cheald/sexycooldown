@@ -2,6 +2,7 @@
 ## Title: SexyCooldown
 ## Notes: A sexy logarithmic cooldown bar
 ## Notes-zhCN: 性感冷却计时条
+## Notes-zhTW: 性感冷卻計時條
 ## Author: Antiarc
 ## Version: 0.6.6
 ## SavedVariables: SexyCooldownDB
@@ -10,6 +11,7 @@
 embeds.xml
 Localization\enUS.lua
 Localization\zhCN.lua
+Localization\zhTW.lua
 loadstub.lua
 options.lua
 prototype.lua
