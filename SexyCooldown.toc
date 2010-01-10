@@ -6,7 +6,10 @@
 ## SavedVariables: SexyCooldownDB
 ## OptionalDeps: Ace3, LibSharedMedia-3.0, LibInternalCooldowns-1.0
 
+#@no-lib-strip@
 embeds.xml
+#@end-no-lib-strip@
+
 Localization\enUS.lua
 loadstub.lua
 options.lua
