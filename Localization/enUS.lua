@@ -53,6 +53,8 @@ L["Major Armor Debuffs"] = true
 L["Show the duration of major armor debuffs on the target"] = true
 L["Spell Hit Debuffs"] = true
 L["Show the duration of +spell hit debuffs on the target"] = true
+L["Healing Debuff"] = true
+L["Show the duration of -healing debuffs on the target"] = true
 
 -- ./Modules/Spells.lua
 L["My spells"] = true

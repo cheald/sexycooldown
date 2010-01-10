@@ -21,6 +21,17 @@ local debuffs = {
 	RAID_DEBUFF_SPELL_HIT = {
 		33193,		-- Misery
 		770,		-- Faerie Fire. We assume that non-feral FF is always improved. Ugly as hell, but not much in the way of alternative options.
+	},
+	RAID_DEBUFF_MORTAL_STRIKE = {
+		47486,		-- Mortal Strike
+		13218,		-- <- Wound Poison	-- needs the rank
+		13222,		--  |
+		13226,		--  |
+		13224,		--  |
+		27189,		--  |
+		57974,		--  |
+		57978,		-- <-
+		49050,		-- Aimed Shot
 	}
 }
 local translatedDebuffs = {}
@@ -40,6 +51,9 @@ function mod:OnInitialize()
 	SexyCooldown.RegisterFilter(self, "RAID_DEBUFF_SPELL_HIT",
 		L["Spell Hit Debuffs"],
 		L["Show the duration of +spell hit debuffs on the target"])
+	SexyCooldown.RegisterFilter(self, "RAID_DEBUFF_MORTAL_STRIKE",
+		L["Healing Debuff"],
+		L["Show the duration of -healing debuffs on the target"])
 		
 	for k, v in pairs(debuffs) do
 		for _, spellID in ipairs(v) do
