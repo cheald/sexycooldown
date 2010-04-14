@@ -86,10 +86,10 @@ end
 function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 	if unit == "player" then
 		tinsert(lastPlayerSpell, 1, spell)
-		if #lastPlayerSpell > 5 then tremove(lastPlayerSpell) end
+		if #lastPlayerSpell > 3 then tremove(lastPlayerSpell) end
 	elseif unit == "pet" then
 		tinsert(lastPetSpell, 1, spell)
-		if #lastPetSpell > 5 then tremove(lastPetSpell) end
+		if #lastPetSpell > 3 then tremove(lastPetSpell) end
 	end
 end
 
@@ -127,7 +127,6 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
 			local uid = "spell:" .. id
 			SexyCooldown:AddItem(uid, name, icon, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
 			added = true
-			break
 		end
 	end
 
