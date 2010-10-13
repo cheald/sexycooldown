@@ -4,34 +4,29 @@ local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 -- We only need one ID per skill - it's translated into a name.
 local debuffs = {
 	RAID_DEBUFF_BLEED = {
-		47465,		-- Rend
-		12867,		-- Deep Wounds
-		48676,		-- Garrote
-		48672,		-- Rupture
-		48568,		-- Lacerate
-		49803,		-- Pounce
-		49800,		-- Rip
-		48574,		-- Rake
-		53582,		-- Savage Rend
+		772,		-- Rend
+		12834,		-- Deep Wounds
+		703,		-- Garrote
+		1943,		-- Rupture
+		33745,		-- Lacerate
+		9005,		-- Pounce
+		1079,		-- Rip
+		1822,		-- Rake
 	},
 	RAID_DEBUFF_MAJOR_ARMOR = {
-		47467,		-- Sunder Armor
-		48669,		-- Expose Armor
+		7386,		-- Sunder Armor
+		8647,		-- Expose Armor
+		770,		-- Faerie Fire
+		16857,		-- Faerie Fire(Feral)
+		50498,		-- Tear Armor
 	},
 	RAID_DEBUFF_SPELL_HIT = {
-		33193,		-- Misery
+		33192,		-- Misery
 		770,		-- Faerie Fire. We assume that non-feral FF is always improved. Ugly as hell, but not much in the way of alternative options.
 	},
 	RAID_DEBUFF_MORTAL_STRIKE = {
-		47486,		-- Mortal Strike
-		13218,		-- <- Wound Poison	-- needs the rank
-		13222,		--  |
-		13226,		--  |
-		13224,		--  |
-		27189,		--  |
-		57974,		--  |
-		57978,		-- <-
-		49050,		-- Aimed Shot
+		12294,		-- Mortal Strike
+		13218,		-- Wound Poison
 	}
 }
 local translatedDebuffs = {}
