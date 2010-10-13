@@ -9,7 +9,7 @@ local lastPlayerSpell, lastPetSpell = {}, {}
 local function cacheSpellsForBook(t, book)
 	wipe(t)
 	for i = 1, 500 do
-		local name = GetSpellName(i, book)
+		local name = GetSpellBookItemName(i, book)
 		if not name then break end
 		
 		local id = tonumber(GetSpellLink(i, book):match("spell:(%d+)"))
