@@ -10,11 +10,14 @@ local function cacheSpellsForBook(t, book)
 	wipe(t)
 	for i = 1, 500 do
 		local name = GetSpellBookItemName(i, book)
-		if not name then break end
-		
-		local id = tonumber(GetSpellLink(i, book):match("spell:(%d+)"))
-		if id and id > 0 then
-			t[name] = id
+		if name then
+			local link = GetSpellLink(i, book)
+			if link then
+				local id = tonumber(link:match("spell:(%d+)"))
+				if id and id > 0 then
+					t[name] = id
+				end
+			end
 		end
 	end
 end
