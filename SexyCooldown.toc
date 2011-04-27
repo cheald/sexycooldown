@@ -1,4 +1,4 @@
-## Interface: 30300
+## Interface: 40100
 ## Title: SexyCooldown
 ## Notes: A sexy logarithmic cooldown bar
 ## Notes-zhCN: 性感冷却计时条

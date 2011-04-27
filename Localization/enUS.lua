@@ -44,17 +44,32 @@ L["Internal cooldowns"] = true
 L["Show internal cooldowns for my items and enchants on this bar."] = true
 
 -- ./Modules/RaidDebuffs.lua
-L["Bleed"] = true
-L["Major Armor"] = true
-L["Spell Hit"] = true
-L["Bleeds on Target"] = true
-L["Show the duration of bleeds on the target"] = true
+L["Major Armor Debuff"] = true
+L["Attack Speed Debuff"] = true
+L["Bleed Damage"] = true
+L["Cast Speed Debuff"] = true
+L["Healing Debuff"] = true
+L["Physical Damage Reduction"] = true
+L["Physical Vulnerability"] = true
+L["Spell Crit Chance"] = true
+L["Spell Damage Taken"] = true
 L["Major Armor Debuffs"] = true
 L["Show the duration of major armor debuffs on the target"] = true
-L["Spell Hit Debuffs"] = true
-L["Show the duration of +spell hit debuffs on the target"] = true
-L["Healing Debuff"] = true
+L["Attack Speed Debuffs"] = true
+L["Show the duration of attack speed debuffs on the target"] = true
+L["Bleed Damage Debuffs"] = true
+L["Show the duration of bleed damage debuffs on the target"] = true
+L["Cast Speed Debuffs"] = true
+L["Show the duration of cast speed debuffs on the target"] = true
 L["Show the duration of -healing debuffs on the target"] = true
+L["Physical Damage Reduction Debuffs"] = true
+L["Show the duration of physical damage reduction debuffs on the target"] = true
+L["Physical Vulnerability Debuffs"] = true
+L["Show the duration of physical vulnerability debuffs on the target"] = true
+L["Spell Crit Debuffs"] = true
+L["Show the duration of spell crit chance debuffs on the target"] = true
+L["Spell Damage Debuffs"] = true
+L["Show the duration of spell damage debuffs on the target"] = true
 
 -- ./Modules/Spells.lua
 L["My spells"] = true

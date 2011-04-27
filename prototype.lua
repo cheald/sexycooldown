@@ -324,8 +324,8 @@ do
 		end
 		
 		-- icon.finishScale.maxScale = self.settings.icon.splashScale
-		icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
-		icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
+		-- icon.finishScale:SetScale(self.settings.icon.splashScale, self.settings.icon.splashScale)
+		-- icon.finishScale:SetDuration(self.settings.icon.splashSpeed)
 		icon.finishAlpha:SetDuration(self.settings.icon.splashSpeed * 1.2)
 		
 		if self.settings.icon.disableMouse then
@@ -396,7 +396,7 @@ do
 		f.finishAlpha = f.finish:CreateAnimation("Alpha")
 		f.finishAlpha:SetChange(-1)
 		
-		f.finishScale = f.finish:CreateAnimation("Scale")		
+		-- f.finishScale = f.finish:CreateAnimation("Scale")		
 		f.finish:SetScript("OnPlay", function()
 			f:SetParent(self.splashAnchor)
 			f:ClearAllPoints()
@@ -406,11 +406,16 @@ do
 			f.overlay:Hide()
 			f.fs:Hide()
 		end)
+		f.finish:SetScript("OnUpdate", function(animation)
+			local p = animation:GetProgress()
+			f:SetScale(1 + (self.settings.icon.splashScale - 1) * p)
+		end)
 		f.finish:SetScript("OnFinished", function()
 			if not self.settings.icon.disableTooltip then
 				f:EnableMouse(true)
 			end
 			f:Hide()
+			f:SetScale(1)
 			f:SetParent(self)
 			f.fs:Show()
 			f.overlay:Show()
@@ -420,18 +425,7 @@ do
 		f.pulse = f.overlay:CreateAnimationGroup()
 		f.pulse:SetLooping("BOUNCE")
 		f.pulseAlpha = f.pulse:CreateAnimation("Alpha")
-		f.pulseAlpha:SetMaxFramerate(30)
 		f.pulseAlpha:SetChange(-1)
-		-- f.pulse:SetScript("OnLoop", function(self, loopState)
-			-- print(loopState)
-			-- if loopState == "FORWARD" then
-				-- print("Disabling mouse on", f.name)
-				-- f.overlay:EnableMouse(false)
-			-- else
-				-- print("Enabling mouse on", f.name, tostring(not f.parent.settings.disableMouse))
-				-- f.overlay:EnableMouse(not f.parent.settings.disableMouse)
-			-- end
-		-- end)
 		f.pulse:SetScript("OnUpdate", function(self)
 			local s, p = f.pulse:GetLoopState(), self:GetProgress()
 			if s == "FORWARD" and p >= 0.5 then
@@ -513,7 +507,7 @@ do
 			f.finish:Stop()
 			f.throb:Stop()
 			f.pulse:Stop()
-			
+
 			f.overlay:Show()
 			f:SetAlpha(1)	
 			f.overlay:SetAlpha(1)			
@@ -929,6 +923,6 @@ end
 -- Sometimes this may not do anything if it's not a valid aura, but hey, we can try.
 function cooldownPrototype:Cancel()
 	if self.name then
-		CancelUnitBuff("player", self.name)
+		-- CancelUnitBuff("player", self.name)
 	end
 end
