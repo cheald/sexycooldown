@@ -8,14 +8,18 @@ local lastPlayerSpell, lastPetSpell = {}, {}
 
 local function cacheSpellsForBook(t, book)
 	wipe(t)
-	for i = 1, 500 do
-		local name = GetSpellBookItemName(i, book)
-		if name then
-			local link = GetSpellLink(i, book)
-			if link then
-				local id = tonumber(link:match("spell:(%d+)"))
-				if id and id > 0 then
-					t[name] = id
+	for i = 1, GetNumSpellTabs() do
+		local tabName, _, offset, numSpells = GetSpellTabInfo(i)
+		for j = offset + 1, offset + numSpells do
+			local name = GetSpellBookItemName(j, book)
+			if name then
+				local link = GetSpellLink(j, book)
+				if link then
+					print(link)
+					local id = tonumber(link:match("spell:(%d+)"))
+					if id and id > 0 then
+						t[name] = id
+					end
 				end
 			end
 		end
