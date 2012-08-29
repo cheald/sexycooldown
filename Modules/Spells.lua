@@ -15,7 +15,6 @@ local function cacheSpellsForBook(t, book)
 			if name then
 				local link = GetSpellLink(j, book)
 				if link then
-					print(link)
 					local id = tonumber(link:match("spell:(%d+)"))
 					if id and id > 0 then
 						t[name] = id
