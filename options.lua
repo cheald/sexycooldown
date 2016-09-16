@@ -3,8 +3,8 @@ local L = LibStub("AceLocale-3.0"):GetLocale("SexyCooldown")
 local LSM = LibStub("LibSharedMedia-3.0")
 
 local outlines = {
-	[""] = L["No outline"], 
-	["OUTLINE"] = L["Outline"], 
+	[""] = L["No outline"],
+	["OUTLINE"] = L["Outline"],
 	["THICKOUTLINE"] = L["Thick Outline"]
 }
 
@@ -42,13 +42,13 @@ local displayFormatHandlers = {
 				val = ("%2.1fm"):format(val / 60)
 			end
 		end
-		return val		
+		return val
 	end,
 	CLOCK = function(val)
 		if val >= 60 then
 			val = ("%2.0f:%02.0f"):format(val / 60, val % 60)
 		end
-		return val		
+		return val
 	end,
 	CLOCK_LONG = function(val)
 		if val >= 60 then
@@ -139,11 +139,11 @@ mod.eventArgs, mod.eventColors = {}, {}
 
 function mod:GetOptionsTable(frame)
 	local db = frame.settings
-	
+
 	local showAdvanced = function()
 		return db.bar.advancedOptions ~= true
 	end
-	
+
 	local copyVal, copyList = nil, {}
 	local options = {
 		copy = {
@@ -183,7 +183,7 @@ function mod:GetOptionsTable(frame)
 						db = frame.settings
 						frame:UpdateLook()
 					end
-				}				
+				}
 			},
 			order = 200
 		},
@@ -316,7 +316,7 @@ function mod:GetOptionsTable(frame)
 						return not db.icon.showText and not db.icon.showStacks
 					end,
 					order = 123
-				},				
+				},
 				outline = {
 					type = "select",
 					name = L["Font Outline"],
@@ -346,7 +346,7 @@ function mod:GetOptionsTable(frame)
 					desc = L["Border color"],
 					hasAlpha = true,
 					order = 52
-				},				
+				},
 				borderSize = {
 					type = "range",
 					name = L["Border size"],
@@ -364,7 +364,7 @@ function mod:GetOptionsTable(frame)
 					max = 25,
 					step = 1,
 					bigStep = 1,
-				},		
+				},
 				generalheader = {
 					type = "header",
 					name = L["General options"],
@@ -451,7 +451,7 @@ function mod:GetOptionsTable(frame)
 					type = "toggle",
 					name = L["Lock"],
 					desc = L["Lock this bar to prevent resizing or moving"],
-					order = 2					
+					order = 2
 				},
 				flexible = {
 					type = "toggle",
@@ -471,7 +471,7 @@ function mod:GetOptionsTable(frame)
 					type = "select",
 					values = orientations,
 					order = 4
-				},							
+				},
 				timeHeader = {
 					type = "header",
 					name = L["Time and Duration settings"],
@@ -497,7 +497,7 @@ function mod:GetOptionsTable(frame)
 					step = 1,
 					bigStep = 10,
 					order = 21
-				},				
+				},
 				minDuration = {
 					type = "range",
 					name = L["Minimum duration"],
@@ -517,7 +517,7 @@ function mod:GetOptionsTable(frame)
 					step = 1,
 					bigStep = 5,
 					order = 22
-				},				
+				},
 				bnbHeader = {
 					type = "header",
 					name = L["Border and Background"],
@@ -547,8 +547,8 @@ function mod:GetOptionsTable(frame)
 					type = "color",
 					name = L["Border color"],
 					desc = L["Border color"],
-					hasAlpha = true		
-				},				
+					hasAlpha = true
+				},
 				borderSize = {
 					type = "range",
 					name = L["Border size"],
@@ -567,8 +567,8 @@ function mod:GetOptionsTable(frame)
 					max = 16,
 					step = 1,
 					bigStep = 1,
-					hidden = showAdvanced					
-				},				
+					hidden = showAdvanced
+				},
 				-- Font
 				font = {
 					type = "select",
@@ -576,7 +576,7 @@ function mod:GetOptionsTable(frame)
 					desc = L["Font"],
 					dialogControl = 'LSM30_Font',
 					values = LSM:HashTable("font")
-				},				
+				},
 				fontsize = {
 					type = "range",
 					name = L["Font size"],
@@ -596,13 +596,13 @@ function mod:GetOptionsTable(frame)
 					type = "color",
 					name = L["Font color"],
 					desc = L["Font color"],
-					hasAlpha = true		
+					hasAlpha = true
 				},
 				-- Options
 				positioning = {
 					type = "header",
 					name = L["Position and Size"],
-					order = 399,					
+					order = 399,
 					hidden = showAdvanced,
 				},
 				height = {
@@ -636,7 +636,7 @@ function mod:GetOptionsTable(frame)
 					step = 1,
 					bigStep = 1,
 					hidden = showAdvanced,
-					order = 500					
+					order = 500
 				},
 				y = {
 					type = "range",
@@ -648,7 +648,7 @@ function mod:GetOptionsTable(frame)
 					bigStep = 1,
 					hidden = showAdvanced,
 					order = 501,
-				},				
+				},
 				inactiveAlpha = {
 					type = "range",
 					name = L["Inactive Opacity"],
@@ -732,14 +732,14 @@ function mod:GetOptionsTable(frame)
 		local obj = db
 		for i = 3, #info do
 			obj = obj[info[i]]
-		end			
+		end
 		if type(obj) == "table" then
 			return obj.r, obj.g, obj.b, obj.a
 		else
 			return obj
 		end
 	end
-	
+
 	handlers.set = function(info, ...)
 		local obj = db
 		for i = 3, #info - 1 do
@@ -751,13 +751,13 @@ function mod:GetOptionsTable(frame)
 			local t = obj[info[#info]]
 			t.r, t.g, t.b, t.a = ...
 		end
-		frame:UpdateLook()		
+		frame:UpdateLook()
 	end
-	
+
 	handlers.getEvents = function(self, info)
 		return db.events[info[#info]]
 	end
-	
+
 	handlers.setEvents = function(self, info, value)
 		-- handlers.set(info, value)
 		db.events[info[#info]] = value
@@ -769,12 +769,12 @@ function mod:GetOptionsTable(frame)
 		end
 		mod:Refresh(info[#info])
 	end
-	
+
 	handlers.getEventColors = function(self, info)
 		local t = db.eventColors[info[#info]] or db.icon.borderColor
 		return t.r, t.g, t.b, t.a
-	end	
-	
+	end
+
 	handlers.setEventColors = function(self, info, r, g, b, a)
 		if info.type == "color" then
 			local t = db.eventColors[info[#info]] or {}
@@ -783,17 +783,17 @@ function mod:GetOptionsTable(frame)
 		end
 		frame:UpdateLook()
 	end
-	
+
 	handlers.resetColors = function(self)
 		db.eventColors = {}
 		frame:UpdateLook()
 	end
-	
+
 	handlers.setName = function(self, info, value)
 		handlers.set(info, value)
 		mod:UpdateFrameName(frame)
 	end
-	
+
 	return {
 		type = "group",
 		name = frame.settings.bar.name,

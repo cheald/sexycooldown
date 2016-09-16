@@ -24,5 +24,3 @@ core.lua
 Modules\Spells.lua
 Modules\Items.lua
 Modules\Auras.lua
-Modules\RaidDebuffs.lua
-Modules\Totems.lua
