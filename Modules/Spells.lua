@@ -127,9 +127,11 @@ function mod:UpdateSpellCooldowns(spellQueue, spellSet, filter)
     if active == 1 and start > 0 and duration > 3 then
       local name, _, icon = GetSpellInfo(name)
       local id = spellSet[name] or getID(name)
-      local uid = "spell:" .. id
-      SexyCooldown:AddItem(uid, name, icon, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
-      added = true
+      if id then
+        local uid = "spell:" .. id
+        SexyCooldown:AddItem(uid, name, icon, start, duration, nil, filter, SexyCooldown.SHOW_HYPERLINK, uid)
+        added = true
+      end
     end
   end
 

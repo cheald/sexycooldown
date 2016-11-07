@@ -204,6 +204,7 @@ function barPrototype:Init()
   local close = CreateFrame("Button", nil, self.splashAnchor, "UIPanelCloseButton")
   close:SetWidth(14)
   close:SetHeight(14)
+  close:ClearAllPoints()
   close:SetPoint("TOPRIGHT", self.splashAnchor, "TOPRIGHT", -1, -1)
   close:SetScript("OnClick", function(self)
     self:GetParent():lock(true)
@@ -264,6 +265,10 @@ do
     backdrop.edgeSize = self.settings.icon.borderSize or backdrop.edgeSize
 
     icon:SetClampedToScreen(self.settings.icon.clamp)
+
+    icon.tex:ClearAllPoints()
+    icon.overlay.tex:ClearAllPoints()
+
     icon.tex:SetPoint("TOPLEFT", icon, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)
     icon.tex:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -self.settings.icon.borderInset, self.settings.icon.borderInset)
     icon.overlay.tex:SetPoint("TOPLEFT", icon.overlay, "TOPLEFT", self.settings.icon.borderInset, -self.settings.icon.borderInset)
@@ -597,6 +602,7 @@ end
 function barPrototype:CreateLabel()
   local s = tremove(stringPool) or self:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
   tinsert(self.usedStrings, s)
+  s:ClearAllPoints()
   s:SetParent(self)
   s:Show()
   return s
@@ -709,10 +715,12 @@ do
 end
 
 function barPrototype:UpdateBarLook()
+  self:ClearAllPoints()
   self:SetPoint("CENTER", UIParent, "CENTER", self.settings.bar.x, self.settings.bar.y)
   self:SetWidth(self:Vertical() and self.settings.bar.height or self.settings.bar.width)
   self:SetHeight(self:Vertical() and self.settings.bar.width or self.settings.bar.height)
 
+  self.splashAnchor:ClearAllPoints()
   if self.settings.bar.splash_x then
     self.splashAnchor:SetPoint("CENTER", UIParent, "BOTTOMLEFT", self.settings.bar.splash_x, self.settings.bar.splash_y)
   else
@@ -895,6 +903,7 @@ function cooldownPrototype:UpdateTime()
   local barWidth = (w - (h / 2))
   local base = parent.settings.bar.time_compression
   local pos = getPos(remaining, timeMax, base) * barWidth
+  self:ClearAllPoints()
   if parent:Vertical() then
     self:SetPoint("CENTER", parent, getAnchorSide(parent), 0, pos * (parent:Reversed() and -1 or 1))
   else
