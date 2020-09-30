@@ -1,10 +1,10 @@
-## Interface: 70300
+## Interface: 80300
 ## Title: SexyCooldown
 ## Notes: A sexy logarithmic cooldown bar
 ## Notes-zhCN: 性感冷却计时条
 ## Notes-zhTW: 性感冷卻計時條
 ## Author: Antiarc
-## Version: 0.7.0
+## Version: 0.8.0
 ## SavedVariables: SexyCooldownDB
 ## OptionalDeps: Ace3, LibSharedMedia-3.0
 

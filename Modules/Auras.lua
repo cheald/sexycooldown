@@ -95,7 +95,7 @@ do
     local name, rank, icon, count, debuffType, duration, expirationTime, source, index, id
     index = 1
     while true do
-      name, rank, icon, count, debuffType, duration, expirationTime, source, _, _, id = func(unit, index)
+      name, icon, count, debuffType, duration, expirationTime, source, _, _, id = func(unit, index)
       local altID = SPELL_ALIASES["SPELL_" .. (id or "none")]
       if not name then break end
 
