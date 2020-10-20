@@ -4,7 +4,7 @@ local LSM = LibStub("LibSharedMedia-3.0")
 local math_min, math_abs, math_pow, math_floor, math_fmod = _G.math.min, _G.math.abs, _G.math.pow, _G.math.floor, _G.math.fmod
 local string_format = _G.string.format
 local GetTime = _G.GetTime
-local dummyFrame = CreateFrame("Frame")
+local dummyFrame = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
 local cooldownPrototype = setmetatable({}, {__index = dummyFrame})
 local cooldownMeta = {__index = cooldownPrototype}
 local barPrototype = setmetatable({}, {__index = dummyFrame})
@@ -186,7 +186,7 @@ function barPrototype:Init()
   }
 
   -- Anchor to control where icon ready splashes appear
-  self.splashAnchor = CreateFrame("Frame", nil, UIParent)
+  self.splashAnchor = CreateFrame("Frame", nil, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 
   self.splashAnchor:SetBackdrop(backdrop)
   self.splashAnchor:SetBackdropColor(0, 1, 0, 1)
@@ -368,11 +368,11 @@ do
   end
 
   function barPrototype:CreateNewCooldownFrame()
-    local f = setmetatable(CreateFrame("Frame"), cooldownMeta)
+    local f = setmetatable(CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate"), cooldownMeta)
 
     f.tex = f:CreateTexture(nil, "ARTWORK")
 
-    f.overlay = CreateFrame("Frame", nil, f)
+    f.overlay = CreateFrame("Frame", nil, f, BackdropTemplateMixin and "BackdropTemplate")
     f.overlay:SetPoint("CENTER")
 
     f.overlay.icon = f
