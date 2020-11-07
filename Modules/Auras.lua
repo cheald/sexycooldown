@@ -104,7 +104,7 @@ do
         count = 0
         name, rank, icon, _ = GetSpellInfo(altID)
         for i = 1, 128 do
-          local auraName, _, _, _, _, _, _, _, _, _, auraID = func(unit, i)
+          local auraName, _, _, _, _, _, _, _, _, auraID = func(unit, i)
           if not auraName then break end
           if COLLAPSE_SPELLS["SPELL_" .. (auraID or "none")] == altID then
             count = count + 1
